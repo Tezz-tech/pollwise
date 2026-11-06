@@ -160,14 +160,14 @@ export default function Tally({
     >
       {/* Arms sit behind the body, each rotating about its shoulder. */}
       <Animated.View
-        style={[StyleSheet.absoluteFill, armLStyle, { transformOrigin: [156 * s, 440 * s] }]}
+        style={[StyleSheet.absoluteFill, armLStyle, { transformOrigin: [156 * s, 440 * s, 0] }]}
       >
         <Svg width={size} height={height} viewBox={`0 0 ${VIEW.w} ${VIEW.h}`}>
           <Rect x={127} y={440} width={58} height={150} rx={29} fill={colors.jade600} />
         </Svg>
       </Animated.View>
       <Animated.View
-        style={[StyleSheet.absoluteFill, armRStyle, { transformOrigin: [484 * s, 440 * s] }]}
+        style={[StyleSheet.absoluteFill, armRStyle, { transformOrigin: [484 * s, 440 * s, 0] }]}
       >
         <Svg width={size} height={height} viewBox={`0 0 ${VIEW.w} ${VIEW.h}`}>
           <Rect x={455} y={440} width={58} height={150} rx={29} fill={colors.jade600} />
@@ -175,7 +175,7 @@ export default function Tally({
       </Animated.View>
 
       <Animated.View
-        style={[StyleSheet.absoluteFill, bodyStyle, { transformOrigin: [320 * s, height] }]}
+        style={[StyleSheet.absoluteFill, bodyStyle, { transformOrigin: [320 * s, height, 0] }]}
       >
         <Svg width={size} height={height} viewBox={`0 0 ${VIEW.w} ${VIEW.h}`}>
           <Defs>

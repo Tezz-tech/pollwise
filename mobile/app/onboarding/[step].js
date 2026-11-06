@@ -116,7 +116,7 @@ function StateStep({ onNext }) {
   const { busy, save } = useSave();
   const states = useQuery({
     queryKey: ['geo', 'states'],
-    queryFn: () => api.request('/geo/states', { auth: false }),
+    queryFn: loadNonEmpty('/geo/states'),
     staleTime: Infinity,
   });
   const items = useFilter(states.data ?? [], query);
@@ -125,6 +125,12 @@ function StateStep({ onNext }) {
     <Question title="Which state will you serve in?">
       <Field label="Search states" value={query} onChangeText={setQuery} autoCapitalize="words" />
       {states.isPending ? <Skeleton height={48} /> : null}
+      {states.isError ? (
+        <ListProblem
+          message="We could not load the states. Check your connection."
+          onRetry={() => states.refetch()}
+        />
+      ) : null}
       <FlatList
         data={items}
         keyExtractor={(item) => item.code}
@@ -156,7 +162,7 @@ function LgaStep({ onNext }) {
   const { busy, save } = useSave();
   const lgas = useQuery({
     queryKey: ['geo', 'lgas', stateCode],
-    queryFn: () => api.request(`/geo/states/${stateCode}/lgas`, { auth: false }),
+    queryFn: loadNonEmpty(`/geo/states/${stateCode}/lgas`),
     enabled: Boolean(stateCode),
     staleTime: Infinity,
   });
@@ -166,6 +172,12 @@ function LgaStep({ onNext }) {
     <Question title="Which local government area?">
       <Field label="Search areas" value={query} onChangeText={setQuery} autoCapitalize="words" />
       {lgas.isPending ? <Skeleton height={48} /> : null}
+      {lgas.isError ? (
+        <ListProblem
+          message="We could not load the areas for this state. Check your connection."
+          onRetry={() => lgas.refetch()}
+        />
+      ) : null}
       <FlatList
         data={items}
         keyExtractor={(item) => item.code}
@@ -317,6 +329,31 @@ function ReminderStep({ onNext }) {
       ))}
     </Question>
   );
+}
+
+/** A message and a retry button for a list that did not load (never a silent empty box). */
+function ListProblem({ message, onRetry }) {
+  return (
+    <View style={{ gap: space.sm, paddingVertical: space.sm }}>
+      <Text style={{ fontFamily: fonts.bold, fontSize: type.body.size, color: colors.ink900 }}>
+        {message}
+      </Text>
+      <LipButton label="Try again" tone="secondary" onPress={onRetry} testID="list-retry" />
+    </View>
+  );
+}
+
+/**
+ * Load a list that must not be empty. An empty answer counts as a failure, so it is never kept in the cache as
+ * the answer and is tried again. This matters when the server has no data yet.
+ */
+function loadNonEmpty(path) {
+  return async () => {
+    const data = await api.request(path, { auth: false });
+    if (!Array.isArray(data) || data.length === 0)
+      throw new Error('The list is not available yet.');
+    return data;
+  };
 }
 
 /** A case-insensitive filter over a list of {name, code}. */
