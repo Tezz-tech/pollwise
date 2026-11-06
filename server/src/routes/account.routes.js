@@ -3,6 +3,7 @@ import { ROLES } from '@pollwise/shared/constants';
 import { createAccountController } from '../controllers/account.controller.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { createContentRoutes } from './content.routes.js';
+import { createSuperRoutes } from './super.routes.js';
 import { createLearnerController } from '../controllers/learner.controller.js';
 import { validate } from '../middleware/validate.js';
 import {
@@ -47,6 +48,7 @@ export function createAdminRouter(ctx, limiters) {
   );
   // Content routes share this router's session check and rate limit, so each request is counted once.
   router.use(createContentRoutes(ctx));
+  router.use(createSuperRoutes(ctx));
   return router;
 }
 

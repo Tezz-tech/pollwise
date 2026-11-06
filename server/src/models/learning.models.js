@@ -97,6 +97,8 @@ assessmentAttemptSchema.index(
   { unique: true, partialFilterExpression: { status: 'in_progress' } }
 );
 assessmentAttemptSchema.index({ userId: 1, assessmentId: 1, status: 1 });
+// Reports: attempts per course and status.
+assessmentAttemptSchema.index({ courseId: 1, status: 1 });
 
 const xpEventSchema = new Schema(
   {

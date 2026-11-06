@@ -72,5 +72,10 @@ export const userSchema = new Schema(
 
 userSchema.index({ role: 1, status: 1 });
 userSchema.index({ status: 1, deletionRequestedAt: 1 });
+// Reports and filters: learners by role and date, by area, and by last sign-in.
+userSchema.index({ role: 1, createdAt: 1 });
+userSchema.index({ role: 1, lastLoginAt: 1 });
+userSchema.index({ role: 1, 'profile.stateCode': 1 });
+userSchema.index({ role: 1, 'profile.lgaCode': 1 });
 
 export const User = mongoose.models.User || mongoose.model('User', userSchema);

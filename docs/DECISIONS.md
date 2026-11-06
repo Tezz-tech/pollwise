@@ -101,3 +101,28 @@ Phase 3 — the learning engine
 - 2026-11-06 — The answer-leak test walks every learner response across catalogue, outline, lessons, practice, attempts and submit. It fails on any answer key, on the explanation before an answer, and on aligned matching pairs.
 - 2026-11-06 — Certificate assets: the PollWise logo from brand/png and Nunito from the approved `@expo-google-fonts/nunito` package (SIL OFL), copied into server/assets.
 - 2026-11-06 — `pdfkit` (approved stack) renders certificates. It uses the built-in font set only for what is not Nunito, so no font download happens at runtime.
+
+Phase 4 — super admin, reports, users
+
+- 2026-11-06 — Each enrolment carries the learner's state and LGA (`stateCode`, `lgaCode`), copied at enrolment and updated whenever the learner's profile changes. Geography reports read enrolments directly. The first version joined every enrolment to its learner and took 14 s on 50,000 learners; the copy brings it to about 400 ms.
+- 2026-11-06 — Enrolments gained `extraAttempts` (keyed by assessment). A super admin's grant adds one; the attempt limit is `maxAttempts + granted`.
+- 2026-11-06 — The CSV export is audit-logged before the first row is written, so an attempted export is recorded even if the download breaks off. It carries only the agreed columns (no hashes, codes or answers), and any cell starting with `= + - @` is prefixed with an apostrophe so it cannot run as a formula when opened.
+- 2026-11-06 — Opening a learner's detail page (which shows answers) writes a `user.view` audit entry. SECURITY §10 does not list it, but answers are sensitive, so the view is recorded.
+- 2026-11-06 — Deactivating a learner bumps their token version and revokes their refresh tokens in the same request, so the next call with an old token fails. A super admin cannot deactivate their own account (409), and a learner whose account is waiting for deletion cannot be changed.
+- 2026-11-06 — Revoking an admin ends their sessions. A super admin cannot revoke themself, and the last active super admin cannot be revoked (409).
+- 2026-11-06 — The reset sent by an admin uses the same code path as the public forgot-password route (`sendResetCode`), so the code rules (15 minutes, five attempts, single use) are identical.
+- 2026-11-06 — Access codes can be added and switched off but not deleted, so their use counts remain accurate. Only argon2 hashes are stored, and settings responses carry labels and counts, never hashes.
+- 2026-11-06 — The audit log is read-only through the API: the query route exists, and no route writes or deletes entries.
+- 2026-11-06 — Report definitions: "active this week" means a sign-in in the last seven days; completion rate is completed enrolments ÷ enrolments; average score is the mean of submitted attempt scores; attempts per learner is submitted attempts ÷ enrolments on that course.
+- 2026-11-06 — Performance (scripts/measure-reports.js, 50,000 learners, 72,919 enrolments, 145,869 attempts, in-memory MongoDB on Windows): overview 397 ms median / 445 ms worst; courses 381 / 399 ms; geography by state 414 / 437 ms; drill-down 19 / 20 ms; learner list 30 / 32 ms. All under 500 ms, but the margin is thin for three reports. Re-measure on the production Atlas cluster before launch.
+
+Index review (Phase 4)
+
+- users: `_id`, `email` (unique, sparse), `phone` (unique, sparse), `role+status`, `role+createdAt`, `role+lastLoginAt`, `role+profile.stateCode`, `role+profile.lgaCode`, `status+deletionRequestedAt`. The learner list and the overview run on the `role+…` indexes.
+- enrollments: `userId+courseId` (unique), `courseId`, `startedAt`, `completedAt`, `stateCode+lgaCode`. The reports group on `courseId`, `stateCode` and the date fields.
+- assessmentattempts: `userId`, `userId+assessmentId`, `userId+assessmentId+status` (partial unique for in-progress attempts), `courseId+status` (course report).
+- lessonprogress: `userId+lessonId` (unique), `userId+courseId`.
+- xpevents: `userId+reason+refId` (unique, the no-double-award guarantee), `userId+day`.
+- auditlogs: `at`, `actorId`, `action`.
+- certificates: `userId+courseId` (unique), `code` (unique).
+- Development seed: `npm run seed:load -w server` (fake learners, clearly marked; refuses nothing, so never point it at production). `npm run measure:reports -w server` times the reports.

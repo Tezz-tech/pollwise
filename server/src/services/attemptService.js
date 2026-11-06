@@ -84,7 +84,8 @@ export async function startAttempt(ctx, userId, assessmentId) {
     assessmentId: assessment._id,
     status: mongoose.trusted({ $in: [ATTEMPT_STATUS.SUBMITTED, ATTEMPT_STATUS.EXPIRED] }),
   });
-  if (assessment.maxAttempts && used >= assessment.maxAttempts) {
+  const granted = progress.enrollment?.extraAttempts?.[String(assessment._id)] ?? 0;
+  if (assessment.maxAttempts && used >= assessment.maxAttempts + granted) {
     throw new HttpError(
       403,
       ERROR_CODES.ATTEMPTS_EXHAUSTED,

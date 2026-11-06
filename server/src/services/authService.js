@@ -278,6 +278,32 @@ export async function logout(ctx, raw) {
 }
 
 /**
+ * Create a fresh six-digit reset code for a user, invalidate their older codes, and email it. Shared by
+ * the public forgot-password route and the admin "send reset" action (SPEC §6).
+ * @param {{ _id: unknown, email: string }} user
+ */
+export async function sendResetCode(ctx, user) {
+  const code = randomSixDigitCode();
+  const now = ctx.now();
+  await PasswordReset.updateMany(
+    { userId: user._id, purpose: 'reset', usedAt: null },
+    { $set: { usedAt: now } }
+  );
+  await PasswordReset.create({
+    userId: user._id,
+    purpose: 'reset',
+    codeHash: await hashPassword(code),
+    expiresAt: addMinutes(now, RESET_CODE_TTL_MINUTES),
+  });
+  try {
+    await ctx.mailer.send({ to: user.email, ...resetCodeEmail(code) });
+  } catch (err) {
+    // Log the failure without the code or the address.
+    ctx.logger.error({ err: err.message, userId: String(user._id) }, 'reset email failed to send');
+  }
+}
+
+/**
  * Start a password reset. Always returns the same message, whether or not the account exists
  * (SPEC §6, SECURITY §1). Work is done on both branches so timing does not reveal the account.
  * @param {{ identifier: string }} input
@@ -287,27 +313,7 @@ export async function forgotPassword(ctx, input) {
   const user = await findUserByIdentifier(input.identifier);
 
   if (user && user.status === USER_STATUS.ACTIVE && user.email) {
-    const code = randomSixDigitCode();
-    const now = ctx.now();
-    await PasswordReset.updateMany(
-      { userId: user._id, purpose: 'reset', usedAt: null },
-      { $set: { usedAt: now } }
-    );
-    await PasswordReset.create({
-      userId: user._id,
-      purpose: 'reset',
-      codeHash: await hashPassword(code),
-      expiresAt: addMinutes(now, RESET_CODE_TTL_MINUTES),
-    });
-    try {
-      await ctx.mailer.send({ to: user.email, ...resetCodeEmail(code) });
-    } catch (err) {
-      // Log the failure without the code or the address.
-      ctx.logger.error(
-        { err: err.message, userId: String(user._id) },
-        'reset email failed to send'
-      );
-    }
+    await sendResetCode(ctx, user);
   } else {
     await hashPassword(randomToken(12));
   }

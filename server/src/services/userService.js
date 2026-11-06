@@ -13,7 +13,7 @@ import { randomToken } from '../utils/crypto.js';
 import { addDays } from '../utils/time.js';
 import { lgaBelongsToState } from './geoService.js';
 import { revokeAllForUser } from './tokenService.js';
-import { Certificate } from '../models/index.js';
+import { Certificate, Enrollment } from '../models/index.js';
 import { toPublicUser } from './authService.js';
 
 export const DELETION_GRACE_DAYS = 7;
@@ -89,6 +89,11 @@ export async function updateProfile(ctx, userId, patch) {
   }
 
   await user.save();
+  // Keep the enrolment copies of the area in step, for the geography reports (see the Enrollment model).
+  await Enrollment.updateMany(
+    { userId: user._id },
+    { $set: { stateCode: user.profile.stateCode, lgaCode: user.profile.lgaCode } }
+  );
   return toPublicUser(user);
 }
 

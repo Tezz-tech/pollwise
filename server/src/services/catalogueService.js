@@ -106,12 +106,18 @@ export async function enrol(ctx, userId, courseId) {
   const existing = await Enrollment.findOne({ userId, courseId: outline.course._id }).lean();
   if (existing) return { enrollment: enrolmentView(existing), events: [] };
 
+  const learner = await User.findById(userId, {
+    'profile.stateCode': 1,
+    'profile.lgaCode': 1,
+  }).lean();
   try {
     const created = await Enrollment.create({
       userId,
       courseId: outline.course._id,
       startedAt: ctx.now(),
       currentModuleId: outline.modules[0]?.id,
+      stateCode: learner?.profile?.stateCode,
+      lgaCode: learner?.profile?.lgaCode,
     });
     return { enrollment: enrolmentView(created.toObject()), events: [] };
   } catch (err) {

@@ -15,7 +15,9 @@
     "seed:geo": "node scripts/seed-geo.js",
     "seed:geo:load": "node scripts/seed-geo.js --load",
     "create-super-admin": "node scripts/create-super-admin.js",
-    "lint": "eslint . && prettier --check ."
+    "lint": "eslint . && prettier --check .",
+    "seed:load": "node scripts/seed-load.js",
+    "measure:reports": "node scripts/measure-reports.js"
   },
   "devDependencies": {
     "mongodb-memory-server": "11.3.0",

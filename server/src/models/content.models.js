@@ -114,12 +114,21 @@ const enrollmentSchema = new Schema(
     bestScores: { type: Map, of: Number, default: {} },
     /** Modules whose assessment has been passed. Kept as a list so unlock checks are simple. */
     passedModuleIds: { type: [Schema.Types.ObjectId], default: [] },
+    /** The learner's area, copied here so geography reports need no join. Kept in step with the profile. */
+    stateCode: String,
+    lgaCode: String,
+    /** Attempts granted above an assessment's maxAttempts by a super admin, keyed by assessment id. */
+    extraAttempts: { type: Map, of: Number, default: {} },
   },
   { timestamps: true }
 );
 // One enrolment per learner per course (SPEC §5).
 enrollmentSchema.index({ userId: 1, courseId: 1 }, { unique: true });
 enrollmentSchema.index({ courseId: 1 });
+// Reports: the 30-day series and completion rates filter on these dates.
+enrollmentSchema.index({ startedAt: 1 });
+enrollmentSchema.index({ stateCode: 1, lgaCode: 1 });
+enrollmentSchema.index({ completedAt: 1 });
 
 export const Course = mongoose.models.Course || mongoose.model('Course', courseSchema);
 export const Module = mongoose.models.Module || mongoose.model('Module', moduleSchema);
