@@ -912,3 +912,36 @@ describe('module and lesson ownership in one place', () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe('admin lesson read', () => {
+  it('returns the full lesson for the editor, and refuses another admin', async () => {
+    const a = await writer();
+    const b = await otherWriter();
+    const course = await createCourse(a);
+    const { moduleId, lessonId } = await addModuleWithLesson(a, course.id);
+    const own = await h.api
+      .get(`/api/v1/admin/modules/${moduleId}/lessons/${lessonId}`)
+      .set(a.auth);
+    expect(own.status).toBe(200);
+    expect(own.body.data.video.youtubeId).toBe(ID);
+    const other = await h.api
+      .get(`/api/v1/admin/modules/${moduleId}/lessons/${lessonId}`)
+      .set(b.auth);
+    expect(other.status).toBe(404);
+  });
+});
+
+describe('course create: only the required fields are needed', () => {
+  it('creates a course without a category', async () => {
+    const a = await writer();
+    const res = await h.api
+      .post('/api/v1/admin/courses')
+      .set(a.auth)
+      .send({
+        title: 'No category yet',
+        summary: 'Minimal course.',
+        targetRoles: ['party_agent'],
+      });
+    expect(res.status).toBe(201);
+  });
+});

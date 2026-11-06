@@ -43,7 +43,7 @@ export const courseCreateBody = z
     title: text(120),
     summary: text(160),
     description: richTextSchema.optional(),
-    category: optionalText(60),
+    category: optionalText(60).optional(),
     targetRoles: z.array(z.enum(PERSONNEL_ROLE_VALUES)).min(1).max(6),
     isRequired: z.boolean().default(false),
     estimatedMinutes: z.number().int().min(0).max(100000).default(0),

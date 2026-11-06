@@ -5,3 +5,4 @@ coverage
 .expo
 server/data/geo.json
 package-lock.json
+admin/src/styles/theme.css

@@ -643,6 +643,32 @@ export async function createLesson(ctx, actor, moduleId, input, meta) {
   return { id: String(lesson._id), title: lesson.title, type: lesson.type, order: lesson.order };
 }
 
+/** Full lesson for the editor, including answer keys (admin only). */
+export async function getLesson(ctx, actor, moduleId, lessonId) {
+  const { mod, course } = await loadModuleAndCourse(moduleId);
+  if (!visibleTo(actor, course)) throw notFound('lesson');
+  const lesson = await Lesson.findOne({ _id: oid(lessonId), moduleId: mod._id }).lean();
+  if (!lesson) throw notFound('lesson');
+  return {
+    id: String(lesson._id),
+    title: lesson.title,
+    type: lesson.type,
+    order: lesson.order,
+    xp: lesson.xp,
+    video: lesson.video ?? null,
+    text: lesson.text ?? null,
+    document: lesson.document ?? null,
+    practice: lesson.practice
+      ? {
+          questions: lesson.practice.questions.map((q) => ({
+            ...JSON.parse(JSON.stringify(q)),
+            id: String(q._id),
+          })),
+        }
+      : null,
+  };
+}
+
 export async function updateLesson(ctx, actor, moduleId, lessonId, patch, meta) {
   const { mod, course } = await loadModuleAndCourse(moduleId);
   assertCanEdit(actor, course);

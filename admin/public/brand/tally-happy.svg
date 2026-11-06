@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 780" width="640" height="780">
+<title>Tally, the PollWise mascot</title>
+  <ellipse cx="320" cy="752" rx="190" ry="16" fill="#13322A" opacity=".10"/>
+  <rect x="206" y="684" width="92" height="58" rx="29" fill="#12613F"/>
+  <rect x="342" y="684" width="92" height="58" rx="29" fill="#12613F"/><rect x="127" y="440" width="58" height="150" rx="29" fill="#1A8257" transform="rotate(22 156 440)"/><rect x="455" y="440" width="58" height="150" rx="29" fill="#1A8257" transform="rotate(-22 484 440)"/>
+  <rect x="140" y="330" width="360" height="370" rx="64" fill="#1A8257"/>
+  <rect x="140" y="330" width="360" height="344" rx="64" fill="#23A46E"/>
+  <rect x="110" y="236" width="420" height="112" rx="44" fill="#1A8257"/>
+  <rect x="110" y="236" width="420" height="90" rx="44" fill="#2BB673"/>
+  <rect x="220" y="268" width="200" height="34" rx="17" fill="#13322A"/>
+  <clipPath id="slotclip"><rect x="0" y="0" width="640" height="286"/></clipPath>
+  <g clip-path="url(#slotclip)">
+    <g transform="rotate(-9 320 160)">
+      <rect x="232" y="44" width="176" height="236" rx="28" fill="#F2A93B"/>
+      <rect x="232" y="44" width="176" height="236" rx="28" fill="none" stroke="#C9821C" stroke-width="0" />
+      <path d="M279 158 L314 193 L367 126" fill="none" stroke="#13322A" stroke-width="32"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+  <ellipse cx="206" cy="552" rx="27" ry="16" fill="#F4A08F" opacity=".85"/>
+  <ellipse cx="434" cy="552" rx="27" ry="16" fill="#F4A08F" opacity=".85"/>
+  <ellipse cx="262" cy="470" rx="44" ry="54" fill="#FFFFFF"/>
+  <ellipse cx="378" cy="470" rx="44" ry="54" fill="#FFFFFF"/>
+  <circle id="pupilL" cx="268" cy="482" r="25" fill="#13322A"/>
+  <circle id="pupilR" cx="384" cy="482" r="25" fill="#13322A"/>
+  <circle cx="277" cy="471" r="8" fill="#FFFFFF"/>
+  <circle cx="393" cy="471" r="8" fill="#FFFFFF"/>
+  <path d="M288 550 Q320 586 352 550" fill="none" stroke="#13322A" stroke-width="17" stroke-linecap="round"/>
+</svg>

@@ -126,3 +126,21 @@ Index review (Phase 4)
 - auditlogs: `at`, `actorId`, `action`.
 - certificates: `userId+courseId` (unique), `code` (unique).
 - Development seed: `npm run seed:load -w server` (fake learners, clearly marked; refuses nothing, so never point it at production). `npm run measure:reports -w server` times the reports.
+
+Phase 5 — admin website: shell, auth, course builder
+
+- 2026-11-06 — The admin reaches the API through the same origin (Vite proxy in development, a reverse proxy in production). That keeps the refresh cookie scoped and lets the admin read the CSRF cookie; it is the assumption noted in Phase 1.
+- 2026-11-06 — The access token is held in memory only. Silent refresh uses the httpOnly cookie plus the X-CSRF-Token header (SECURITY §1). No token is written to localStorage or sessionStorage (checked).
+- 2026-11-06 — The TOTP setup screen shows the setup key and the otpauth link, with copy buttons. It does not draw a QR code: that needs a QR library, which is not in the approved stack. Needs approval before a QR is added.
+- 2026-11-06 — Client-side validation uses zod with react-hook-form and no resolver package, because @hookform/resolvers is not approved. Server errors are mapped back to fields by their path.
+- 2026-11-06 — The text editor allows only headings 2 and 3, paragraphs, bold, italic and lists (SECURITY §4). The allowed set lives in lib/richText.js and is tested against the server's validator.
+- 2026-11-06 — Question drafts use temporary ids; the server replaces them with random ids (SECURITY §3). A question's type can be changed, which resets its answer part.
+- 2026-11-06 — The learner preview shows the saved version of a lesson, check or course, not unsaved edits. Save first; the preview says so by design.
+- 2026-11-06 — The video length is read once, with the YouTube IFrame API on youtube-nocookie.com, when a video lesson has none, and saved automatically (SPEC §7).
+- 2026-11-06 — The publish confetti is a small motion-driven burst in brand colours. It is skipped entirely for reduced motion (DESIGN §3).
+- 2026-11-06 — Dependencies added (all approved stack): motion, @dnd-kit/core, @dnd-kit/sortable, @tiptap/react, @tiptap/starter-kit, @tiptap/pm (required by the TipTap React package), sonner, lucide-react, react-hook-form, @tanstack/react-query, zod. The dnd-kit utilities package is not used; the transform is computed inline.
+- 2026-11-06 — Routes for the courses list and the builder load lazily; the builder is the largest chunk (about 509 KB before compression).
+- 2026-11-06 — Server fix found by the end-to-end run: course creation required `category`, but the field is documented as optional. Now optional, with a regression test.
+- 2026-11-06 — Not built in this phase: the super admin screens (users, reports, admins, settings, audit log). Their API is complete and tested (Phase 4); the screens are a separate piece of work.
+- 2026-11-06 — Verification limits: no browser was available in this session, so the screens were not seen or clicked. Verified instead: the production build, lint, 12 unit tests for the editors' pure logic, and an end-to-end run through the Vite proxy (sign-in, TOTP, cookie flags, CSRF refresh, course build, checklist and preview) against a real API and MongoDB.
+- 2026-11-06 — The "done when" publish needs Cloudinary credentials: the cover image and the PDF lesson both go through the signed upload. Without them the checklist correctly reports the cover as missing.

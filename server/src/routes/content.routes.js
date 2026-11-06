@@ -123,6 +123,12 @@ export function createContentRoutes(ctx) {
     validate({ params: idParams, body: reorderBody('lessonIds') }),
     c.reorderLessons
   );
+  router.get(
+    '/modules/:id/lessons/:lessonId',
+    requireRole(...CONTENT),
+    validate({ params: moduleAndLessonParams }),
+    c.getLesson
+  );
   router.patch(
     '/modules/:id/lessons/:lessonId',
     requireRole(...CONTENT),

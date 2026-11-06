@@ -125,6 +125,17 @@ export function createContentController(ctx) {
       });
     },
 
+    async getLesson(req, res) {
+      res.json({
+        data: await content.getLesson(
+          ctx,
+          actorOf(req),
+          req.validated.params.id,
+          req.validated.params.lessonId
+        ),
+      });
+    },
+
     async updateLesson(req, res) {
       res.json({
         data: await content.updateLesson(
