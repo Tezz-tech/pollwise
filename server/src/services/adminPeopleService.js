@@ -158,7 +158,7 @@ export async function userDetail(ctx, actor, userId, meta) {
   const courseById = new Map(courses.map((c) => [String(c._id), c]));
   const modules = await Module.find(
     { courseId: mongoose.trusted({ $in: courses.map((c) => c._id) }) },
-    { title: 1, courseId: 1, lessonIds: 1 }
+    { title: 1, courseId: 1, lessonIds: 1, assessmentId: 1 }
   ).lean();
 
   await recordAudit(ctx, {
@@ -191,6 +191,7 @@ export async function userDetail(ctx, actor, userId, meta) {
           .map((m) => ({
             id: String(m._id),
             title: m.title,
+            assessmentId: m.assessmentId ? String(m.assessmentId) : null,
             passed: passed.has(String(m._id)),
             lessonsCompleted: m.lessonIds.filter((id) => completedLessons.has(String(id))).length,
             lessonsTotal: m.lessonIds.length,

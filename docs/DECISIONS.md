@@ -144,3 +144,17 @@ Phase 5 — admin website: shell, auth, course builder
 - 2026-11-06 — Not built in this phase: the super admin screens (users, reports, admins, settings, audit log). Their API is complete and tested (Phase 4); the screens are a separate piece of work.
 - 2026-11-06 — Verification limits: no browser was available in this session, so the screens were not seen or clicked. Verified instead: the production build, lint, 12 unit tests for the editors' pure logic, and an end-to-end run through the Vite proxy (sign-in, TOTP, cookie flags, CSRF refresh, course build, checklist and preview) against a real API and MongoDB.
 - 2026-11-06 — The "done when" publish needs Cloudinary credentials: the cover image and the PDF lesson both go through the signed upload. Without them the checklist correctly reports the cover as missing.
+
+Phase 6 — super admin screens
+
+- 2026-11-06 — Dashboard charts use Recharts 3.10.1 (approved stack), coloured from the tokens: jade, amber and sky series, rounded bars, no gridline clutter. KPI figures count up, and the count-up is skipped for reduced motion.
+- 2026-11-06 — The learner list waits 300 ms after typing before it queries, and it returns to page 1 when a filter changes. The LGA list is enabled only after a state is chosen, and changing the state clears the LGA.
+- 2026-11-06 — CSV export is fetched with the access token in the header and saved from a blob. A plain download link would put a token in the URL or drop the Authorization header.
+- 2026-11-06 — Reports drill down from state to LGA with the `stateCode` query. They read the denormalised area on enrolments, so no join runs on the 50,000-learner seed.
+- 2026-11-06 — The public /verify/:code page shows only validity, the learner's name, the course and the issue date (SPEC §8.6). An unknown code and a revoked one look the same.
+- 2026-11-06 — Content admins get a "not for your role" page on super-admin URLs, and the nav omits those links. The server still enforces the role on every route.
+- 2026-11-06 — admin/.prettierignore was added because Prettier reads its ignore file from the working directory only. Without it, the admin lint gate failed on build output and the generated theme.
+- 2026-11-06 — Smoke test through the Vite proxy against the 50,000-learner dev seed: 21 calls (session, users with each filter, CSV export, user detail, three reports, admins, settings, audit log, geo lists, verify) all returned 200 in 11–900 ms. Report timings (scripts/measure-reports.js): overview 396 ms median, 500 ms worst; courses 284 / 291 ms; geography 261 / 346 ms; drill-down 12 ms; learner list 22 / 76 ms.
+- 2026-11-06 — Risk: the name, email and phone search took about 0.9 s on the 50k seed. It is not covered by the report timings. Before launch, add a text or prefix index for search, or search by prefix only.
+- 2026-11-06 — Verification limits: no browser was available, so no screen was seen or clicked. Checked instead: admin lint (ESLint and Prettier), 12 admin unit tests, the production build, the 300 server tests, and the API smoke test above. No certificate exists in the dev data, so the valid branch of /verify was not exercised.
+- 2026-11-06 — A dev-only super admin (dev-smoke@pollwise.test) was created in the local dev database for the smoke test. It is not in the repo. Remove it before any shared environment is used.
