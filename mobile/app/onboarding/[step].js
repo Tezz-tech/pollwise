@@ -41,7 +41,9 @@ export default function Onboarding() {
   // Jumping ahead (for example from a deep link) sends the learner to the first question they have not answered.
   useEffect(() => {
     const first = firstUnansweredStep(user);
-    if (number > first) router.replace(`/onboarding/${first}`);
+    // Only the required questions (state, area, role) can block a step. Ward, goal and reminder are optional or
+    // have defaults, so moving past the ward must never send the learner back to it.
+    if (first <= 3 && number > first) router.replace(`/onboarding/${first}`);
   }, [number, user]);
 
   const next = () => {

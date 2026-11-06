@@ -132,3 +132,21 @@ describe('isWelcomeBack', () => {
     expect(isWelcomeBack('not a date', now)).toBe(false);
   });
 });
+
+import { firstUnansweredStep } from '../src/lib/onboarding.js';
+
+describe('firstUnansweredStep', () => {
+  it('points at the first required question still missing', () => {
+    expect(firstUnansweredStep({ profile: {} })).toBe(1);
+    expect(firstUnansweredStep({ profile: { stateCode: 'LA' } })).toBe(2);
+    expect(firstUnansweredStep({ profile: { stateCode: 'LA', lgaCode: 'LA-IKEJA' } })).toBe(3);
+  });
+
+  it('reports 4 once the required questions are done, so the optional ward never blocks the steps after it', () => {
+    expect(
+      firstUnansweredStep({
+        profile: { stateCode: 'LA', lgaCode: 'LA-IKEJA', personnelRole: 'party_agent' },
+      })
+    ).toBe(4);
+  });
+});
