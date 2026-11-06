@@ -4,15 +4,14 @@
  * process, because a serverless function must return. Failures answer with a generic JSON error (SECURITY §8): the
  * configuration variable names may be logged, their values never are.
  */
-import { ERROR_CODES } from '@pollwise/shared/constants';
-
 const STARTING = 'The service is starting. Try again in a moment.';
+const UPSTREAM_UNAVAILABLE = 'UPSTREAM_UNAVAILABLE';
 
 /**
  * @param {{
- *   loadConfig: () => { LOG_LEVEL: string, MONGODB_URI: string },
+ *   loadConfig: () => object | Promise<object>,
  *   connect: (uri: string) => Promise<unknown>,
- *   buildApp: (deps: { config: object }) => import('express').Express,
+ *   buildApp: (deps: { config: object }) => import('express').Express | Promise<import('express').Express>,
  *   log?: (message: string) => void,
  * }} deps
  */
@@ -23,12 +22,14 @@ export function createServerlessHandler({ loadConfig, connect, buildApp, log = (
   function start() {
     if (!ready) {
       ready = (async () => {
-        const config = loadConfig();
+        const config = await loadConfig();
         await connect(config.MONGODB_URI);
         return buildApp({ config });
       })();
       ready.catch((err) => {
-        log(`start-up failed: ${err?.message ?? 'unknown error'}`);
+        // The first lines of the stack name the file that failed. They hold no configuration values.
+        const where = (err?.stack ?? String(err)).split('\n').slice(0, 4).join(' | ');
+        log(`start-up failed: ${where}`);
         ready = null;
       });
     }
@@ -43,9 +44,7 @@ export function createServerlessHandler({ loadConfig, connect, buildApp, log = (
       res.statusCode = 503;
       res.setHeader('content-type', 'application/json; charset=utf-8');
       res.setHeader('retry-after', '5');
-      res.end(
-        JSON.stringify({ error: { code: ERROR_CODES.UPSTREAM_UNAVAILABLE, message: STARTING } })
-      );
+      res.end(JSON.stringify({ error: { code: UPSTREAM_UNAVAILABLE, message: STARTING } }));
       return undefined;
     }
     return app(req, res);
