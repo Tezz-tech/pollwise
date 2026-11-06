@@ -25,7 +25,10 @@ export function firstOpenLesson(outline) {
  */
 export async function openRecommendedLesson(api, role) {
   const catalogue = await api.request('/courses');
-  const candidates = rankCourses(catalogue.items ?? [], catalogue.role ?? role).slice(0, MAX_CANDIDATES);
+  const candidates = rankCourses(catalogue.items ?? [], catalogue.role ?? role).slice(
+    0,
+    MAX_CANDIDATES
+  );
   for (const course of candidates) {
     const outline = await api.request(`/courses/${course.slug}`);
     const lesson = firstOpenLesson(outline);

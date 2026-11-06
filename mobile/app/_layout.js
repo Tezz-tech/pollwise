@@ -15,6 +15,7 @@ import ThemeProvider from '../src/theme/ThemeProvider.js';
 import { theme } from '../src/theme/theme.js';
 import ToastHost from '../src/components/ToastHost.js';
 import CelebrationHost from '../src/components/CelebrationHost.js';
+import OfflineBanner from '../src/components/OfflineBanner.js';
 import { bootstrap } from '../src/lib/bootstrap.js';
 import { useSession } from '../src/stores/sessionStore.js';
 
@@ -63,6 +64,7 @@ export default function RootLayout() {
                 contentStyle: { backgroundColor: theme.colors.bg },
               }}
             />
+            <OfflineBanner />
             <ToastHost />
             <CelebrationHost />
           </BottomSheetModalProvider>

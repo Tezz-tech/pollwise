@@ -14,7 +14,14 @@ const { colors, space } = theme;
  *   contentStyle?: import('react-native').ViewStyle,
  * }} props
  */
-export default function Screen({ children, scroll = false, footer, padded = true, contentStyle }) {
+export default function Screen({
+  children,
+  scroll = false,
+  footer,
+  padded = true,
+  contentStyle,
+  edges = ['top', 'left', 'right'],
+}) {
   const body = scroll ? (
     <ScrollView
       contentContainerStyle={[padded && styles.padded, styles.grow, contentStyle]}
@@ -28,7 +35,7 @@ export default function Screen({ children, scroll = false, footer, padded = true
   );
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safe} edges={edges}>
       <KeyboardAvoidingView
         style={styles.grow}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
