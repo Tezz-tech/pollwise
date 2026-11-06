@@ -41,20 +41,52 @@ const originList = z
   )
   .pipe(z.array(z.url()));
 
-export const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']),
-  PORT: z.coerce.number().int().min(1).max(65535).default(4000),
-  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
-  MONGODB_URI: z
-    .string({ error: 'MONGODB_URI is required' })
-    .regex(/^mongodb(\+srv)?:\/\//, 'MONGODB_URI must start with mongodb:// or mongodb+srv://'),
-  JWT_ACCESS_SECRET: strongSecret('JWT_ACCESS_SECRET'),
-  TOTP_ENC_KEY: totpKey,
-  /** Browsers allowed to call the API with credentials (the admin site). Mobile needs no CORS. */
-  ADMIN_ORIGIN: originList,
-  /** Number of reverse proxies in front of the app (SECURITY §5). 0 = none. */
-  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
-});
+const optionalString = z
+  .string()
+  .optional()
+  .transform((value) => (value && value.trim() !== '' ? value.trim() : undefined));
+
+export const envSchema = z
+  .object({
+    NODE_ENV: z.enum(['development', 'test', 'production']),
+    PORT: z.coerce.number().int().min(1).max(65535).default(4000),
+    LOG_LEVEL: z
+      .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
+      .default('info'),
+    MONGODB_URI: z
+      .string({ error: 'MONGODB_URI is required' })
+      .regex(/^mongodb(\+srv)?:\/\//, 'MONGODB_URI must start with mongodb:// or mongodb+srv://'),
+    JWT_ACCESS_SECRET: strongSecret('JWT_ACCESS_SECRET'),
+    TOTP_ENC_KEY: totpKey,
+    /** Browsers allowed to call the API with credentials (the admin site). Mobile needs no CORS. */
+    ADMIN_ORIGIN: originList,
+    /** Public URL of the admin site, used to build invitation links. */
+    ADMIN_PUBLIC_URL: z.url().default('http://localhost:5173'),
+    /** Number of reverse proxies in front of the app (SECURITY §5). 0 = none. */
+    TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
+    /** SMTP for password-reset codes and admin invitations (SPEC §6, SECURITY §1). */
+    SMTP_HOST: optionalString,
+    SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
+    SMTP_USER: optionalString,
+    SMTP_PASS: optionalString,
+    MAIL_FROM: optionalString.pipe(z.email().optional()),
+  })
+  .superRefine((env, ctx) => {
+    if (env.SMTP_HOST && !env.MAIL_FROM) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['MAIL_FROM'],
+        message: 'MAIL_FROM is required when SMTP_HOST is set',
+      });
+    }
+    if (env.NODE_ENV === 'production' && !env.SMTP_HOST) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['SMTP_HOST'],
+        message: 'SMTP_HOST is required in production',
+      });
+    }
+  });
 
 /**
  * @param {Record<string, string | undefined>} source usually process.env

@@ -12,6 +12,8 @@ export const ROLES = Object.freeze({
   SUPER_ADMIN: 'super_admin',
 });
 export const ROLE_VALUES = Object.freeze(Object.values(ROLES));
+/** Roles an existing super admin can invite (SPEC §2). Learners are never invited. */
+export const INVITABLE_ROLE_VALUES = Object.freeze([ROLES.CONTENT_ADMIN, ROLES.SUPER_ADMIN]);
 
 /**
  * Who a learner is on election day. Party-neutral on purpose: no party or candidate names anywhere

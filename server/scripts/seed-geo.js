@@ -4,6 +4,7 @@
  *
  *   node scripts/seed-geo.js            verify server/data/geo.json against docs/data/lga-counts.json
  *   node scripts/seed-geo.js --refresh  fetch the public dataset, clean it, write geo.json, then verify
+ *   node scripts/seed-geo.js --load     verify, then upsert states and LGAs into MongoDB
  *
  * Source: xosasx/nigerian-local-government-areas (MIT licence), file lgas.json.
  * https://github.com/xosasx/nigerian-local-government-areas
@@ -12,9 +13,11 @@
  * Any count mismatch exits non-zero. Counts are the contract; a silent drift would make the
  * onboarding dropdowns wrong for a whole state.
  *
- * Writing the cleaned data into MongoDB is part of Phase 1, when the State and Lga models exist.
+ * With --load, the cleaned data is upserted into MongoDB (needs MONGODB_URI).
  */
 import { readFile, writeFile } from 'node:fs/promises';
+import { connectDatabase, disconnectDatabase } from '../src/db.js';
+import { loadDotEnvFile } from '../src/config/env.js';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -164,6 +167,40 @@ async function main() {
     `Geo count check passed: ${geoFile.states.length} states, ${geoFile.lgas.length} LGAs ` +
       `(expected ${expected.total}).`
   );
+
+  if (process.argv.includes('--load')) {
+    await loadGeoIntoDatabase(geoFile);
+  }
+}
+
+/**
+ * Upsert states and LGAs into MongoDB. Idempotent: running it twice leaves the same data. Reads
+ * MONGODB_URI from the environment or server/.env.
+ * @param {{ states: State[], lgas: Lga[] }} geoFile
+ */
+export async function loadGeoIntoDatabase(geoFile) {
+  loadDotEnvFile();
+  const uri = process.env.MONGODB_URI;
+  if (!uri) throw new Error('MONGODB_URI is not set. Add it to server/.env before using --load.');
+
+  await connectDatabase(uri);
+  try {
+    const { State, Lga } = await import('../src/models/index.js');
+    await State.bulkWrite(
+      geoFile.states.map((s) => ({
+        updateOne: { filter: { code: s.code }, update: { $set: s }, upsert: true },
+      }))
+    );
+    await Lga.bulkWrite(
+      geoFile.lgas.map((l) => ({
+        updateOne: { filter: { code: l.code }, update: { $set: l }, upsert: true },
+      }))
+    );
+    const [states, lgas] = await Promise.all([State.countDocuments(), Lga.countDocuments()]);
+    console.log(`Loaded geography into MongoDB: ${states} states, ${lgas} LGAs.`);
+  } finally {
+    await disconnectDatabase();
+  }
 }
 
 // Only run when executed directly, so the tests can import the helpers.

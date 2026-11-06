@@ -13,6 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "seed:geo": "node scripts/seed-geo.js",
+    "seed:geo:load": "node scripts/seed-geo.js --load",
+    "create-super-admin": "node scripts/create-super-admin.js",
     "lint": "eslint . && prettier --check ."
   },
   "devDependencies": {
@@ -22,10 +24,18 @@
   },
   "dependencies": {
     "@pollwise/shared": "0.1.0",
+    "argon2": "0.45.2",
+    "cookie-parser": "1.4.7",
     "cors": "2.8.6",
+    "dayjs": "1.11.23",
     "express": "5.3.0",
+    "express-rate-limit": "8.7.3",
     "helmet": "8.3.0",
+    "jsonwebtoken": "9.0.3",
     "mongoose": "9.12.0",
+    "nanoid": "6.0.2",
+    "nodemailer": "10.3.1",
+    "otplib": "13.6.0",
     "pino": "10.4.0",
     "pino-http": "11.0.0",
     "zod": "4.6.7"

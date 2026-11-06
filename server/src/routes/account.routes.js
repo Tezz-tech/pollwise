@@ -1,0 +1,61 @@
+import { Router } from 'express';
+import { ROLES } from '@pollwise/shared/constants';
+import { createAccountController } from '../controllers/account.controller.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import {
+  updateMeBody,
+  updateProfileBody,
+  inviteAdminBody,
+  stateCodeParams,
+} from '../validation/account.schemas.js';
+
+/**
+ * Authenticated learner and self routes: /api/v1/me.
+ */
+export function createMeRouter(ctx, limiters) {
+  const c = createAccountController(ctx);
+  const router = Router();
+  router.use(requireAuth(ctx), limiters.authed);
+
+  router.get('/', c.getMe);
+  router.patch('/', validate({ body: updateMeBody }), c.updateMe);
+  router.patch('/profile', validate({ body: updateProfileBody }), c.updateProfile);
+  router.delete('/', c.requestDeletion);
+  return router;
+}
+
+/**
+ * /api/v1/admin. Every route needs a signed-in admin; each one then checks its role.
+ */
+export function createAdminRouter(ctx, limiters) {
+  const c = createAccountController(ctx);
+  const router = Router();
+  router.use(requireAuth(ctx), limiters.authed);
+
+  router.get('/session', requireRole(ROLES.CONTENT_ADMIN, ROLES.SUPER_ADMIN), c.adminSession);
+  router.post(
+    '/admins',
+    requireRole(ROLES.SUPER_ADMIN),
+    validate({ body: inviteAdminBody }),
+    c.inviteAdmin
+  );
+  return router;
+}
+
+/**
+ * Public read routes: geo and settings (SPEC §6).
+ */
+export function createPublicRouter(ctx, limiters) {
+  const c = createAccountController(ctx);
+  const router = Router();
+  router.get('/geo/states', limiters.publicIp, c.listStates);
+  router.get(
+    '/geo/states/:stateCode/lgas',
+    limiters.publicIp,
+    validate({ params: stateCodeParams }),
+    c.listLgas
+  );
+  router.get('/settings/public', limiters.publicIp, c.publicSettings);
+  return router;
+}
