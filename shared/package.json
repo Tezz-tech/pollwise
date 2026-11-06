@@ -1,0 +1,26 @@
+{
+  "name": "@pollwise/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Constants, XP rules, zod schemas, copy and design tokens shared by server, admin and mobile",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./constants": "./constants.js",
+    "./xp": "./xp.js",
+    "./tokens": "./tokens.js",
+    "./copy": "./copy.js",
+    "./schemas": "./schemas/index.js"
+  },
+  "files": [
+    "*.js",
+    "schemas/"
+  ],
+  "scripts": {
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  }
+}
