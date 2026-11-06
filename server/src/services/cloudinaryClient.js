@@ -32,7 +32,8 @@ export function createCloudinaryClient(config) {
     },
     /** Fetch the asset's real metadata (format, size, pages) for verification. */
     async resource(publicId, resourceType) {
-      return cloudinary.api.resource(publicId, { resource_type: resourceType });
+      // pages: true asks Cloudinary for the page count of a PDF (it is omitted otherwise).
+      return cloudinary.api.resource(publicId, { resource_type: resourceType, pages: true });
     },
     /** Remove an asset that failed verification. */
     async destroy(publicId, resourceType) {
