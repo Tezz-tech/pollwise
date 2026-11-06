@@ -1,0 +1,35 @@
+{
+  "name": "@pollwise/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PollWise learner app (Expo, React Native, Expo Router)",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "eslint . && prettier --check .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@expo-google-fonts/nunito": "0.4.2",
+    "expo": "58.0.23",
+    "expo-audio": "~58.0.11",
+    "expo-constants": "~58.0.15",
+    "expo-font": "~58.0.11",
+    "expo-haptics": "~58.0.7",
+    "expo-image": "~58.0.18",
+    "expo-linking": "~58.0.16",
+    "expo-notifications": "~58.1.8",
+    "expo-router": "~58.0.30",
+    "expo-secure-store": "~58.0.2",
+    "expo-splash-screen": "~58.0.13",
+    "expo-status-bar": "58.0.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-safe-area-context": "~5.11.1",
+    "react-native-screens": "~4.30.1"
+  }
+}

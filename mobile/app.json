@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "PollWise",
+    "slug": "pollwise",
+    "scheme": "pollwise",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F6F8F5",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "org.tezzer.pollwise"
+    },
+    "android": {
+      "package": "org.tezzer.pollwise",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1A8257"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#1A8257",
+          "imageWidth": 200
+        }
+      ],
+      "expo-font",
+      "expo-audio",
+      "expo-secure-store",
+      "expo-image"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
