@@ -15,7 +15,7 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://pollwise.vercel.app/api/v1",
-        "EXPO_PUBLIC_VERIFY_BASE_URL": "https://REPLACE-WITH-ADMIN-HOST"
+        "EXPO_PUBLIC_VERIFY_BASE_URL": "https://pollwise-admin.vercel.app"
       }
     },
     "production": {
@@ -26,7 +26,7 @@
       "ios": {},
       "env": {
         "EXPO_PUBLIC_API_URL": "https://pollwise.vercel.app/api/v1",
-        "EXPO_PUBLIC_VERIFY_BASE_URL": "https://REPLACE-WITH-ADMIN-HOST"
+        "EXPO_PUBLIC_VERIFY_BASE_URL": "https://pollwise-admin.vercel.app"
       }
     }
   },
