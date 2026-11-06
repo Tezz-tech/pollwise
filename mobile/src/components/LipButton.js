@@ -89,11 +89,11 @@ export default function LipButton({
 }
 
 const styles = StyleSheet.create({
-  wrap: { height: size.button + lip.width, minWidth: size.touch },
+  wrap: { minHeight: size.button + lip.width, minWidth: size.touch },
   pressable: { flex: 1 },
   lipLayer: { borderRadius: radius.md },
   face: {
-    height: size.button,
+    minHeight: size.button,
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',

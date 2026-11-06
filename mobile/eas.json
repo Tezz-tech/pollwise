@@ -1,0 +1,36 @@
+{
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://10.0.2.2:4000/api/v1",
+        "EXPO_PUBLIC_VERIFY_BASE_URL": "http://10.0.2.2:5173"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://REPLACE-WITH-API-HOST/api/v1",
+        "EXPO_PUBLIC_VERIFY_BASE_URL": "https://REPLACE-WITH-ADMIN-HOST"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {},
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://REPLACE-WITH-API-HOST/api/v1",
+        "EXPO_PUBLIC_VERIFY_BASE_URL": "https://REPLACE-WITH-ADMIN-HOST"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
