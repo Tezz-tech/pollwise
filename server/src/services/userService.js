@@ -13,7 +13,7 @@ import { randomToken } from '../utils/crypto.js';
 import { addDays } from '../utils/time.js';
 import { lgaBelongsToState } from './geoService.js';
 import { revokeAllForUser } from './tokenService.js';
-import { Certificate, Enrollment } from '../models/index.js';
+import { Certificate, Enrollment, State } from '../models/index.js';
 import { toPublicUser } from './authService.js';
 
 export const DELETION_GRACE_DAYS = 7;
@@ -55,10 +55,18 @@ export async function updateMe(ctx, userId, patch) {
 export async function updateProfile(ctx, userId, patch) {
   const user = await loadUser(userId);
 
-  if (patch.stateCode !== undefined || patch.lgaCode !== undefined) {
-    const stateCode = patch.stateCode ?? user.profile.stateCode;
-    const lgaCode = patch.lgaCode ?? user.profile.lgaCode;
-    if (!stateCode || !lgaCode || !(await lgaBelongsToState(stateCode, lgaCode))) {
+  // A state can be chosen on its own, as the app does first. Choosing a different state clears the area, which the
+  // learner then picks from the new state. An area is only accepted when it belongs to the learner's state.
+  if (patch.stateCode !== undefined) {
+    const known = await State.exists({ code: patch.stateCode });
+    if (!known)
+      throw new HttpError(400, ERROR_CODES.VALIDATION_FAILED, 'Choose a state from the list.');
+    if (patch.stateCode !== user.profile.stateCode) user.profile.lgaCode = undefined;
+    user.profile.stateCode = patch.stateCode;
+  }
+  if (patch.lgaCode !== undefined) {
+    const stateCode = user.profile.stateCode;
+    if (!stateCode || !(await lgaBelongsToState(stateCode, patch.lgaCode))) {
       throw new HttpError(
         400,
         ERROR_CODES.VALIDATION_FAILED,
@@ -66,8 +74,7 @@ export async function updateProfile(ctx, userId, patch) {
         [{ path: 'lgaCode', message: 'This area is not in the chosen state.' }]
       );
     }
-    user.profile.stateCode = stateCode;
-    user.profile.lgaCode = lgaCode;
+    user.profile.lgaCode = patch.lgaCode;
   }
 
   if (patch.personnelRole !== undefined) {

@@ -100,6 +100,9 @@ function useSave() {
     setBusy(true);
     try {
       await fn();
+      // Keep the local profile in step with the server, so the next question sees the answer just given.
+      const me = await api.request('/me');
+      useSession.setState({ user: me });
       setTimeout(after, ADVANCE_MS);
     } catch (err) {
       toast.error(err.message);
