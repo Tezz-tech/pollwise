@@ -128,7 +128,9 @@ describe('certificate PDF download link', () => {
     const second = await issueCertificate(a.id, 'EEEEEEEEEE');
     const link = await h.api.get(`/api/v1/certificates/${first.id}/pdf-link`).set(auth(a.token));
     const token = decodeURIComponent(link.body.data.path.split('download=')[1]);
-    const pdf = await h.api.get(`/api/v1/certificates/${second.id}/pdf?download=${encodeURIComponent(token)}`);
+    const pdf = await h.api.get(
+      `/api/v1/certificates/${second.id}/pdf?download=${encodeURIComponent(token)}`
+    );
     expect(pdf.status).toBe(401);
   });
 

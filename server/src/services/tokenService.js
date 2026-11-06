@@ -41,7 +41,7 @@ export function signAccessToken(ctx, user) {
  * @returns {{ sub: string, role: string, tv: number }}
  */
 /** Audience of a certificate download link. Access tokens never carry an audience, so the two cannot be swapped. */
-export const CERT_DOWNLOAD_AUDIENCE = "cert-pdf";
+export const CERT_DOWNLOAD_AUDIENCE = 'cert-pdf';
 export const CERT_DOWNLOAD_TTL_SECONDS = 120;
 
 /**
@@ -56,7 +56,7 @@ export function signCertificateDownload(ctx, { userId, certificateId }) {
   return jwt.sign(
     { cid: String(certificateId), iat, exp: iat + CERT_DOWNLOAD_TTL_SECONDS },
     ctx.config.JWT_ACCESS_SECRET,
-    { algorithm: "HS256", subject: String(userId), audience: CERT_DOWNLOAD_AUDIENCE }
+    { algorithm: 'HS256', subject: String(userId), audience: CERT_DOWNLOAD_AUDIENCE }
   );
 }
 
@@ -68,15 +68,23 @@ export function verifyCertificateDownload(ctx, token, certificateId) {
   let payload;
   try {
     payload = jwt.verify(token, ctx.config.JWT_ACCESS_SECRET, {
-      algorithms: ["HS256"],
+      algorithms: ['HS256'],
       audience: CERT_DOWNLOAD_AUDIENCE,
       clockTimestamp: Math.floor((ctx.now?.() ?? new Date()).getTime() / 1000),
     });
   } catch {
-    throw new HttpError(401, ERROR_CODES.UNAUTHORIZED, "That download link has expired. Ask for a new one.");
+    throw new HttpError(
+      401,
+      ERROR_CODES.UNAUTHORIZED,
+      'That download link has expired. Ask for a new one.'
+    );
   }
   if (payload.cid !== String(certificateId)) {
-    throw new HttpError(401, ERROR_CODES.UNAUTHORIZED, "That download link is not for this certificate.");
+    throw new HttpError(
+      401,
+      ERROR_CODES.UNAUTHORIZED,
+      'That download link is not for this certificate.'
+    );
   }
   return { userId: payload.sub, certificateId: payload.cid };
 }

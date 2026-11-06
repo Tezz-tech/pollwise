@@ -29,9 +29,15 @@ export async function listMine(userId) {
  * the API base, so the app and the browser both build the same URL.
  */
 export async function certificatePdfLink(ctx, userId, certificateId) {
-  const cert = await Certificate.findOne({ _id: certificateId, userId, revokedAt: null }, { _id: 1 }).lean();
+  const cert = await Certificate.findOne(
+    { _id: certificateId, userId, revokedAt: null },
+    { _id: 1 }
+  ).lean();
   if (!cert) throw new HttpError(404, ERROR_CODES.NOT_FOUND, 'That certificate does not exist.');
-  const token = signCertificateDownload(ctx, { userId: String(userId), certificateId: String(cert._id) });
+  const token = signCertificateDownload(ctx, {
+    userId: String(userId),
+    certificateId: String(cert._id),
+  });
   return {
     path: `/certificates/${cert._id}/pdf?download=${encodeURIComponent(token)}`,
     expiresInSec: CERT_DOWNLOAD_TTL_SECONDS,

@@ -65,7 +65,11 @@ export function createApp({
       logger,
       genReqId: (req) => req.id,
       serializers: {
-        req: (req) => ({ id: req.id, method: req.method, url: String(req.url ?? '').split('?')[0] }),
+        req: (req) => ({
+          id: req.id,
+          method: req.method,
+          url: String(req.url ?? '').split('?')[0],
+        }),
       },
     })
   );

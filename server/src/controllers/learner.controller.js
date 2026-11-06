@@ -82,7 +82,9 @@ export function createLearnerController(ctx) {
     },
 
     async certificatePdfLink(req, res) {
-      res.json({ data: await certificates.certificatePdfLink(ctx, userOf(req), req.validated.params.id) });
+      res.json({
+        data: await certificates.certificatePdfLink(ctx, userOf(req), req.validated.params.id),
+      });
     },
 
     async certificatePdf(req, res) {

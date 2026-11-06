@@ -25,7 +25,12 @@ export function createMeRouter(ctx, limiters) {
   router.get('/', c.getMe);
   router.patch('/', validate({ body: updateMeBody }), c.updateMe);
   router.patch('/profile', validate({ body: updateProfileBody }), c.updateProfile);
-  router.post('/password', limiters.login, validate({ body: changePasswordBody }), c.changePassword);
+  router.post(
+    '/password',
+    limiters.login,
+    validate({ body: changePasswordBody }),
+    c.changePassword
+  );
   router.delete('/', c.requestDeletion);
   const learner = createLearnerController(ctx);
   router.get('/stats', learner.myStats);

@@ -176,7 +176,7 @@ export async function changePassword(ctx, userId, { currentPassword, newPassword
   const user = await User.findById(userId).select('+passwordHash');
   if (!user) throw new HttpError(404, ERROR_CODES.NOT_FOUND, 'We could not find that account.');
   if (!(await verifyPassword(user.passwordHash, currentPassword))) {
-    throw new HttpError(401, ERROR_CODES.INVALID_CREDENTIALS, "That is not your current password.");
+    throw new HttpError(401, ERROR_CODES.INVALID_CREDENTIALS, 'That is not your current password.');
   }
   const problem = passwordProblem(newPassword);
   if (problem) throw new HttpError(400, ERROR_CODES.VALIDATION_FAILED, problem);
