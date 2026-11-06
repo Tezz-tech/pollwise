@@ -40,6 +40,9 @@ const adminLogin = (email, password = PASSWORD) =>
   h.api.post('/api/v1/auth/admin/login').send({ email, password });
 
 const cookiesOf = (res) => res.headers['set-cookie'] ?? [];
+/** The CSRF cookie with the live value; the clearing header sent for the old path is skipped. */
+const newCsrfCookie = (res) =>
+  cookiesOf(res).find((c) => c.startsWith('pw_csrf=') && !c.startsWith('pw_csrf=;'));
 const cookieNamed = (res, name) => cookiesOf(res).find((c) => c.startsWith(`${name}=`));
 
 /** Log a super admin in with TOTP already enabled and return the session body. */
@@ -234,7 +237,25 @@ describe('admin cookies and CSRF', () => {
     expect(refresh).toMatch(/Secure/i);
     expect(refresh).toMatch(/SameSite=Strict/i);
     expect(refresh).toContain('Path=/api/v1/auth');
-    expect(cookieNamed(step2, 'pw_csrf')).toBeDefined();
+    expect(newCsrfCookie(step2)).toBeDefined();
+  });
+
+  it('scopes the readable CSRF cookie to / so the admin page can read it after a reload', async () => {
+    // A browser exposes a cookie to document.cookie only when the page path matches the cookie path. Scoped to
+    // /api/v1/auth, the CSRF value was invisible on /dashboard and every reload logged the admin out.
+    const { step2 } = await superAdminSession();
+    const csrf = newCsrfCookie(step2);
+    expect(csrf).toContain('Path=/;');
+    expect(csrf).not.toMatch(/HttpOnly/i);
+  });
+
+  it('clears the CSRF cookie left at the old path, so only one CSRF value is sent', async () => {
+    const { step2 } = await superAdminSession();
+    const headers = [].concat(step2.headers['set-cookie'] ?? []);
+    const cleared = headers.find(
+      (h) => h.startsWith('pw_csrf=;') && h.includes('Path=/api/v1/auth')
+    );
+    expect(cleared).toBeDefined();
   });
 
   it('refuses a cookie refresh without the matching CSRF header', async () => {
@@ -247,7 +268,7 @@ describe('admin cookies and CSRF', () => {
   it('rotates the cookie when the CSRF header matches the CSRF cookie', async () => {
     const { step2 } = await superAdminSession();
     const refresh = cookieNamed(step2, 'pw_admin_refresh').split(';')[0];
-    const csrf = cookieNamed(step2, 'pw_csrf').split(';')[0];
+    const csrf = newCsrfCookie(step2).split(';')[0];
     const csrfValue = csrf.split('=')[1];
 
     const res = await h.api
@@ -263,7 +284,7 @@ describe('admin cookies and CSRF', () => {
   it('logout clears the admin cookies and revokes the session', async () => {
     const { step2 } = await superAdminSession();
     const refresh = cookieNamed(step2, 'pw_admin_refresh').split(';')[0];
-    const csrf = cookieNamed(step2, 'pw_csrf').split(';')[0];
+    const csrf = newCsrfCookie(step2).split(';')[0];
     const out = await h.api
       .post('/api/v1/auth/logout')
       .set('Cookie', `${refresh}; ${csrf}`)

@@ -127,7 +127,7 @@ export default function Profile() {
   const deleteAccount = () => {
     Alert.alert(
       'Delete your account?',
-      'You will be signed out now. Your account is removed after seven days.',
+      'You will be signed out now. After seven days your name and contact details are removed and your certificates are revoked.',
       [
         { text: 'Keep my account', style: 'cancel' },
         {
@@ -136,7 +136,7 @@ export default function Profile() {
           onPress: () =>
             Alert.alert(
               'Are you sure?',
-              'Your progress and certificates will be removed after seven days.',
+              'Your learning results are kept only as anonymous totals. This cannot be undone once the seven days have passed.',
               [
                 { text: 'No', style: 'cancel' },
                 {

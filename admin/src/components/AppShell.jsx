@@ -38,7 +38,10 @@ export default function AppShell() {
 
   return (
     <div className="flex min-h-full">
-      <aside className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col gap-2xl bg-ink900 p-xl text-white">
+      <aside
+        aria-label="Main navigation"
+        className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col gap-2xl bg-ink900 p-xl text-white"
+      >
         <Link to="/" aria-label="PollWise home" className="inline-flex items-center">
           <Logo variant="white" />
         </Link>

@@ -1,9 +1,12 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Screen from '../src/components/Screen.js';
 import LipButton from '../src/components/LipButton.js';
 import Tally from '../src/components/Tally.js';
+import PrivacyNotice from '../src/components/PrivacyNotice.js';
+import { markPrivacyNoticeSeen, privacyNoticeSeen } from '../src/lib/privacyNotice.js';
+import { usePublicSettings } from '../src/api/queries.js';
 import { theme } from '../src/theme/theme.js';
 
 const { colors, fonts, type, space, radius } = theme;
@@ -31,6 +34,18 @@ export default function Welcome() {
   const { width } = useWindowDimensions();
   const pager = useRef(null);
   const [index, setIndex] = useState(0);
+  const [notice, setNotice] = useState(false);
+  const settings = usePublicSettings();
+  // Shown once, before anything else is asked of the learner (SECURITY §11).
+  useEffect(() => {
+    privacyNoticeSeen().then((seen) => {
+      if (!seen) setNotice(true);
+    });
+  }, []);
+  const acceptNotice = () => {
+    setNotice(false);
+    markPrivacyNoticeSeen().catch(() => {});
+  };
   const last = index === SLIDES.length - 1;
 
   const goTo = (next) => {
@@ -82,6 +97,11 @@ export default function Welcome() {
           </View>
         ))}
       </ScrollView>
+      <PrivacyNotice
+        visible={notice}
+        policyUrl={settings.data?.privacyPolicyUrl ?? null}
+        onContinue={acceptNotice}
+      />
     </Screen>
   );
 }

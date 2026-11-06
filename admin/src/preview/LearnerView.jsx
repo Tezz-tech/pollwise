@@ -139,7 +139,7 @@ export function TipTapDoc({ doc }) {
 export function LearnerQuestion({ question: q }) {
   const options = q.options ?? [];
   return (
-    <section className="flex flex-col gap-sm" aria-label="Question">
+    <div className="flex flex-col gap-sm">
       <p className="text-pw-h3 font-[800] text-ink900">{q.prompt}</p>
       {(q.type === 'single_choice' || q.type === 'multi_choice') &&
         options.map((o) => (
@@ -206,6 +206,6 @@ export function LearnerQuestion({ question: q }) {
           Write a short reflection. This one is not marked.
         </div>
       )}
-    </section>
+    </div>
   );
 }

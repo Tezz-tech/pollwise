@@ -28,13 +28,23 @@ function requestMeta(req) {
 function setAdminCookies(res, refreshToken) {
   const base = { secure: true, sameSite: 'strict', path: COOKIE_PATH, maxAge: TWELVE_HOURS_MS };
   res.cookie(ADMIN_REFRESH_COOKIE, refreshToken, { ...base, httpOnly: true });
-  res.cookie(CSRF_COOKIE, randomToken(24), { ...base, httpOnly: false });
+  // The CSRF cookie is readable by the admin page on every route, so it is scoped to /. A browser only exposes a
+  // cookie to document.cookie when the page path matches the cookie path; scoped to /api/v1/auth it was invisible
+  // after a reload, which logged the admin out. The value is not a secret: the header must match it (SECURITY §1).
+  // Clear the CSRF cookie left by earlier builds at the old path, so only one value is ever sent.
+  res.clearCookie(CSRF_COOKIE, {
+    secure: true,
+    sameSite: 'strict',
+    path: COOKIE_PATH,
+    httpOnly: false,
+  });
+  res.cookie(CSRF_COOKIE, randomToken(24), { ...base, path: '/', httpOnly: false });
 }
 
 function clearAdminCookies(res) {
   const base = { secure: true, sameSite: 'strict', path: COOKIE_PATH };
   res.clearCookie(ADMIN_REFRESH_COOKIE, { ...base, httpOnly: true });
-  res.clearCookie(CSRF_COOKIE, { ...base, httpOnly: false });
+  res.clearCookie(CSRF_COOKIE, { secure: true, sameSite: 'strict', path: '/', httpOnly: false });
 }
 
 /**

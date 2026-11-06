@@ -123,7 +123,7 @@ export default function CourseBuilderPage() {
       )}
 
       <div className="grid gap-xl xl:grid-cols-[280px_minmax(0,1fr)_320px]">
-        <aside className="flex flex-col gap-md">
+        <aside aria-label="Course outline" className="flex flex-col gap-md">
           <OutlineTree
             course={course}
             selection={selection}
@@ -165,7 +165,7 @@ export default function CourseBuilderPage() {
           )}
         </section>
 
-        <aside className="hidden xl:block">
+        <aside aria-label="Item help" className="hidden xl:block">
           <div className="sticky top-24">
             <p className="mb-md text-pw-label font-[800] uppercase tracking-[0.6px] text-ink600">
               Learner preview
