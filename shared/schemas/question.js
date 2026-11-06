@@ -77,8 +77,17 @@ export const matchingSchema = z
   .object({
     ...baseQuestion,
     type: z.literal(QUESTION_TYPES.MATCHING),
+    // `id` identifies the left-hand item; `rightId` identifies the right-hand item. They are different
+    // random ids so a learner's payload never shows which left item belongs with which right item.
     pairs: z
-      .array(z.object({ id: itemIdSchema, left: shortText(120), right: shortText(120) }))
+      .array(
+        z.object({
+          id: itemIdSchema,
+          left: shortText(120),
+          right: shortText(120),
+          rightId: itemIdSchema.optional(),
+        })
+      )
       .min(3)
       .max(6),
   })

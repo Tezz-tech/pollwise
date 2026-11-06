@@ -55,3 +55,22 @@ Phase 1 — server foundation, auth and security
 - 2026-11-06 — The default daily goal is 10 XP until onboarding sets it (SPEC §3 does not give a default).
 - 2026-11-06 — Geography is loaded into MongoDB with `npm run seed:geo:load -w server` (upserts, idempotent, count-checked first). The reference data stays in server/data/geo.json.
 - 2026-11-06 — Access codes are argon2-hashed; the management endpoints come in Phase 6.
+
+Phase 2 — content and admin course APIs
+
+- 2026-11-06 — Edits to a published course take effect at once; a learner's attempt keeps the question version it started with, so an edit never changes a live attempt (SPEC §8.2).
+- 2026-11-06 — Content admins may read published courses by others but not drafts (a draft returns 404, so it is not revealed); they may change only their own courses, and super admins may change any course (SPEC §2).
+- 2026-11-06 — Added `POST /admin/courses/:id/archive` (super admin). SPEC §6 says "archive instead" when a course has enrolments, but lists no route for it.
+- 2026-11-06 — A cover image can only be attached after the course exists, because uploads are scoped to a course. Create therefore takes no image.
+- 2026-11-06 — Every new module gets an empty assessment, so the publish checklist can see it from the start.
+- 2026-11-06 — Item ids inside questions (options, ordering items, matching pairs) are random and chosen by the server. A learner sees these ids, so readable ids would leak the answer (SECURITY §3). Matching uses a separate random `rightId` for the right-hand column so the payload never shows which pairs match.
+- 2026-11-06 — A question's version increases only when what a learner sees or the answer changes. The comparison uses words, not ids, because ids are regenerated on each save.
+- 2026-11-06 — Publish returns 422 PUBLISH_CHECKLIST_FAILED with every problem as a list (SPEC §8.5).
+- 2026-11-06 — Uploads: sign (one folder, one kind, five-minute window) → direct upload → confirm against Cloudinary (format, size, folder, host). Content may only reference confirmed uploads, and takes size and page count from the confirmed record, not from the request (SECURITY §7).
+- 2026-11-06 — PDFs are uploaded with resource type `image` and format `pdf`, so Cloudinary reports page counts. Images accept JPEG, PNG and WebP only; SVG is refused at confirmation and removed.
+- 2026-11-06 — YouTube lookup uses the public oEmbed endpoint with no API key (SPEC §7). Only the title is taken from the response; the thumbnail is always rebuilt from the video ID on YouTube's image host, and a video lesson's thumbnail is never accepted from the request.
+- 2026-11-06 — Reorders must list every item exactly once; anything else is refused. Module and lesson `order` fields are kept equal to their index, and their indexes are not unique, because a reorder would otherwise collide with itself part-way through.
+- 2026-11-06 — Deleting a course is refused once anyone has enrolled (409 COURSE_HAS_ENROLMENTS). The Enrollment model is defined in Phase 2 for this check.
+- 2026-11-06 — Preview uses the same learner serializers as the app, so an admin previews exactly what a learner receives.
+- 2026-11-06 — `cloudinary` and `pdfkit` installed (both in the approved stack). `pdfkit` is used in Phase 3.
+- 2026-11-06 — Mongoose operator filters (`$in`, `$ne`, `$gt`) are wrapped in `mongoose.trusted()`, because `sanitizeFilter` otherwise turns them into literal matches.

@@ -58,6 +58,13 @@ let mongod;
  * @param {{ rateLimits?: object }} [options] lower limits only in tests that exercise them
  */
 export async function startHarness({ rateLimits = {} } = {}) {
+  // Tests swap these holders to change what Cloudinary or YouTube answer, without rebuilding the app.
+  const cloud = { client: undefined };
+  const net = {
+    impl: async () => {
+      throw new Error('no network in tests');
+    },
+  };
   configureMongoose(mongoose);
   mongod = await MongoMemoryServer.create();
   await mongoose.connect(mongod.getUri(), { dbName: 'pollwise_unit' });
@@ -79,9 +86,11 @@ export async function startHarness({ rateLimits = {} } = {}) {
     mailer,
     now: () => new Date(clock.now),
     rateLimits: { ...generous, ...rateLimits },
+    cloudinary: () => cloud.client,
+    fetchImpl: (...args) => net.impl(...args),
   });
 
-  return { app, config, clock, mailer, api: request(app) };
+  return { app, config, clock, mailer, api: request(app), cloud, net };
 }
 
 export async function stopHarness() {
@@ -98,4 +107,38 @@ export async function resetData() {
 /** Advance the fake clock by minutes or hours. */
 export function advance(clock, { minutes = 0, hours = 0, days = 0 } = {}) {
   clock.now = new Date(clock.now.getTime() + (minutes + hours * 60 + days * 1440) * 60_000);
+}
+
+/**
+ * A stand-in for the Cloudinary adapter. `assets` maps a public_id to the metadata Cloudinary would
+ * report for it. Anything not listed is reported as not found.
+ */
+export function fakeCloudinary(assets = {}) {
+  const destroyed = [];
+  return {
+    cloudName: 'pollwise-test',
+    apiKey: 'test-key',
+    destroyed,
+    sign(params) {
+      return `sig:${params.public_id}:${params.allowed_formats}`;
+    },
+    async resource(publicId) {
+      if (!assets[publicId]) throw new Error('not found');
+      return { public_id: publicId, resource_type: 'image', ...assets[publicId] };
+    },
+    async destroy(publicId) {
+      destroyed.push(publicId);
+      return { result: 'ok' };
+    },
+  };
+}
+
+/** Cloudinary metadata for a clean upload at `publicId`, with a secure URL on the upload host. */
+export function cleanAsset(publicId, { format = 'jpg', bytes = 120_000, pages } = {}) {
+  return {
+    format,
+    bytes,
+    pages,
+    secure_url: `https://res.cloudinary.com/pollwise-test/image/upload/${publicId}.${format}`,
+  };
 }

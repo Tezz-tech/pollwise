@@ -11,6 +11,7 @@ import { requestId } from './middleware/requestId.js';
 import { createErrorHandler, notFound } from './middleware/errorHandler.js';
 import { createRateLimiters } from './middleware/rateLimit.js';
 import { createMailer } from './services/mailService.js';
+import { createCloudinaryClient } from './services/cloudinaryClient.js';
 import { createApiRouter } from './routes/index.js';
 
 /**
@@ -25,13 +26,30 @@ import { createApiRouter } from './routes/index.js';
  * }} deps
  * @returns {import('express').Express}
  */
-export function createApp({ config, logger, mailer, now = () => new Date(), rateLimits = {} }) {
+export function createApp({
+  config,
+  logger,
+  mailer,
+  now = () => new Date(),
+  rateLimits = {},
+  cloudinary,
+  fetchImpl,
+}) {
+  const cloudinaryFromConfig = createCloudinaryClient(config);
   const ctx = {
     config,
     logger,
     now,
     mailer: mailer ?? createMailer(config, logger),
     totpKey: Buffer.from(config.TOTP_ENC_KEY, 'base64'),
+    // Upload signing and verification; null when Cloudinary is not configured (SECURITY §7).
+    // A function is accepted so tests can change the client while the app is running.
+    get cloudinary() {
+      if (typeof cloudinary === 'function') return cloudinary();
+      return cloudinary !== undefined ? cloudinary : cloudinaryFromConfig;
+    },
+    // Outbound HTTP for the YouTube oEmbed lookup; injectable so tests never call YouTube.
+    fetch: fetchImpl ?? globalThis.fetch,
   };
   const limiters = createRateLimiters(rateLimits);
 

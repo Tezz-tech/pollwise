@@ -70,6 +70,13 @@ export const envSchema = z
     SMTP_USER: optionalString,
     SMTP_PASS: optionalString,
     MAIL_FROM: optionalString.pipe(z.email().optional()),
+    /**
+     * Cloudinary for images and PDFs (SECURITY §7). Optional: without them, upload endpoints answer
+     * 503 UPLOADS_DISABLED, so the rest of the API still runs locally.
+     */
+    CLOUDINARY_CLOUD_NAME: optionalString,
+    CLOUDINARY_API_KEY: optionalString,
+    CLOUDINARY_API_SECRET: optionalString,
   })
   .superRefine((env, ctx) => {
     if (env.SMTP_HOST && !env.MAIL_FROM) {

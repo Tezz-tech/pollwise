@@ -7,3 +7,5 @@ export { PasswordReset } from './PasswordReset.js';
 export { State, Lga } from './Geo.js';
 export { AuditLog } from './AuditLog.js';
 export { Settings, SETTINGS_KEY } from './Settings.js';
+export { Course, Module, Lesson, Assessment, Enrollment } from './content.models.js';
+export { Upload } from './Upload.js';
