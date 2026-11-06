@@ -237,7 +237,9 @@ export async function submitAttempt(ctx, userId, attemptId) {
     const assessment = await Assessment.findById(attempt.assessmentId, { revealAnswers: 1 }).lean();
     return { result: resultView(attempt, assessment), events: [] };
   }
-  const { attempt: finished, events } = await finish(ctx, attempt, { expired: false });
+  // A submission after the time limit is recorded as expired, not as an on-time submission.
+  const expired = attempt.expiresAt <= ctx.now();
+  const { attempt: finished, events } = await finish(ctx, attempt, { expired });
   const assessment = await Assessment.findById(finished.assessmentId, { revealAnswers: 1 }).lean();
   return { result: resultView(finished, assessment), events };
 }

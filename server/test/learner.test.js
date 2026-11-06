@@ -1184,3 +1184,18 @@ describe('deletion and certificates (SECURITY §11)', () => {
     expect((await h.api.get(`/api/v1/verify/${code}`)).body.data.valid).toBe(false);
   });
 });
+
+describe('late submission', () => {
+  it('submitting after the time limit records the attempt as expired', async () => {
+    const who = await learner();
+    const course = await makeCourse({
+      modules: [{ lessons: ['text'], questions: [Q.single(1, 'b')], timeLimitMin: 1 }],
+    });
+    await enrol(who, course);
+    await finishLesson(who, course.modules[0].lessons[0].id);
+    const start = await post(who, `/api/v1/assessments/${course.modules[0].assessmentId}/attempts`);
+    h.clock.now = new Date(h.clock.now.getTime() + 2 * 60_000);
+    const late = await post(who, `/api/v1/attempts/${start.body.data.attempt.id}/submit`);
+    expect(late.body.data.result.status).toBe('expired');
+  });
+});
