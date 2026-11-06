@@ -66,4 +66,26 @@ describe('loadEnv', () => {
     expect(outcome.ok).toBe(false);
     expect(outcome.problems.join('\n')).not.toContain(leaked);
   });
+
+  it('requires SMTP_HOST in production', () => {
+    const outcome = loadEnv({ ...good, NODE_ENV: 'production' });
+    expect(outcome.ok).toBe(false);
+    expect(outcome.problems.join('\n')).toMatch(/SMTP_HOST is required in production/);
+  });
+
+  it('requires MAIL_FROM whenever SMTP is configured', () => {
+    const outcome = loadEnv({ ...good, SMTP_HOST: 'smtp.example.org' });
+    expect(outcome.ok).toBe(false);
+    expect(outcome.problems.join('\n')).toMatch(/MAIL_FROM/);
+  });
+
+  it('accepts a complete SMTP setup', () => {
+    const outcome = loadEnv({
+      ...good,
+      SMTP_HOST: 'smtp.example.org',
+      MAIL_FROM: 'no-reply@example.org',
+    });
+    expect(outcome.ok).toBe(true);
+    expect(outcome.env.SMTP_PORT).toBe(587);
+  });
 });

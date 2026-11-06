@@ -2,9 +2,13 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
 import { createLogger } from '../src/utils/logger.js';
+import { captureMailer, testConfig } from './helpers/harness.js';
 
-const config = { ADMIN_ORIGIN: ['http://localhost:5173'], TRUST_PROXY_HOPS: 0 };
-const app = createApp({ config, logger: createLogger({ level: 'silent' }) });
+const app = createApp({
+  config: testConfig(),
+  logger: createLogger({ level: 'silent' }),
+  mailer: captureMailer(),
+});
 
 describe('GET /api/v1/health', () => {
   it('returns the standard success envelope', async () => {
