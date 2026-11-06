@@ -59,7 +59,16 @@ export function createApp({
   app.disable('x-powered-by');
 
   app.use(requestId);
-  app.use(pinoHttp({ logger, genReqId: (req) => req.id }));
+  // Log the path without its query string: a certificate download link carries a token in the query.
+  app.use(
+    pinoHttp({
+      logger,
+      genReqId: (req) => req.id,
+      serializers: {
+        req: (req) => ({ id: req.id, method: req.method, url: String(req.url ?? '').split('?')[0] }),
+      },
+    })
+  );
   app.use(helmet());
   app.use(
     cors({

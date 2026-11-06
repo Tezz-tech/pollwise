@@ -40,9 +40,52 @@ export function signAccessToken(ctx, user) {
  * Verify an access token. Throws HttpError so every caller gets the same envelope.
  * @returns {{ sub: string, role: string, tv: number }}
  */
+/** Audience of a certificate download link. Access tokens never carry an audience, so the two cannot be swapped. */
+export const CERT_DOWNLOAD_AUDIENCE = "cert-pdf";
+export const CERT_DOWNLOAD_TTL_SECONDS = 120;
+
+/**
+ * A short-lived link to one certificate PDF. It is bound to the owner and to that certificate, and it expires in
+ * two minutes, so a link that leaks from a browser history or a log is of little use.
+ * @param {{ config: { JWT_ACCESS_SECRET: string }, now?: () => Date }} ctx
+ * @param {{ userId: string, certificateId: string }} claims
+ */
+export function signCertificateDownload(ctx, { userId, certificateId }) {
+  // iat and exp come from the injected clock, so expiry is testable and matches the rest of the server.
+  const iat = Math.floor((ctx.now?.() ?? new Date()).getTime() / 1000);
+  return jwt.sign(
+    { cid: String(certificateId), iat, exp: iat + CERT_DOWNLOAD_TTL_SECONDS },
+    ctx.config.JWT_ACCESS_SECRET,
+    { algorithm: "HS256", subject: String(userId), audience: CERT_DOWNLOAD_AUDIENCE }
+  );
+}
+
+/**
+ * @returns {{ userId: string, certificateId: string }} the claims, when the token is valid for this certificate
+ * @throws {HttpError} 401 when it is missing, expired, forged, or for another certificate
+ */
+export function verifyCertificateDownload(ctx, token, certificateId) {
+  let payload;
+  try {
+    payload = jwt.verify(token, ctx.config.JWT_ACCESS_SECRET, {
+      algorithms: ["HS256"],
+      audience: CERT_DOWNLOAD_AUDIENCE,
+      clockTimestamp: Math.floor((ctx.now?.() ?? new Date()).getTime() / 1000),
+    });
+  } catch {
+    throw new HttpError(401, ERROR_CODES.UNAUTHORIZED, "That download link has expired. Ask for a new one.");
+  }
+  if (payload.cid !== String(certificateId)) {
+    throw new HttpError(401, ERROR_CODES.UNAUTHORIZED, "That download link is not for this certificate.");
+  }
+  return { userId: payload.sub, certificateId: payload.cid };
+}
+
 export function verifyAccessToken(ctx, token) {
   try {
     const payload = jwt.verify(token, ctx.config.JWT_ACCESS_SECRET, { algorithms: ['HS256'] });
+    // Download links carry an audience; an access token never does (see CERT_DOWNLOAD_AUDIENCE).
+    if (payload.aud) throw new jwt.JsonWebTokenError('wrong audience');
     return payload;
   } catch (err) {
     if (err?.name === 'TokenExpiredError') {

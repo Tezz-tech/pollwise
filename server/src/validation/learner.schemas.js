@@ -20,6 +20,11 @@ export const slugParams = z.object({
 
 export const idParams = z.object({ id: objectIdSchema });
 
+/** The download link is only read when present; anything else in the query is ignored. */
+export const certificatePdfQuery = z.object({
+  download: z.string().min(20).max(1000).optional(),
+});
+
 export const lessonParams = z.object({ id: objectIdSchema });
 
 /** The app reports where playback is. The server ignores any duration the client sends. */

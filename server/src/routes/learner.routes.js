@@ -1,12 +1,14 @@
 import { Router } from 'express';
 import { createLearnerController } from '../controllers/learner.controller.js';
 import { requireAuth } from '../middleware/auth.js';
+import { certificateAuth } from '../middleware/certificateAuth.js';
 import { validate } from '../middleware/validate.js';
 import {
   attemptAnswerBody,
   attemptParams,
   catalogueQuery,
   certificateCodeParams,
+  certificatePdfQuery,
   heartbeatBody,
   idParams,
   lessonParams,
@@ -56,7 +58,19 @@ export function createLearnerRouter(ctx, limiters) {
   );
   router.post('/attempts/:id/submit', ...auth, validate({ params: attemptParams }), c.submit);
 
-  router.get('/certificates/:id/pdf', ...auth, validate({ params: idParams }), c.certificatePdf);
+  router.get(
+    '/certificates/:id/pdf-link',
+    ...auth,
+    validate({ params: idParams }),
+    c.certificatePdfLink
+  );
+  router.get(
+    '/certificates/:id/pdf',
+    certificateAuth(ctx),
+    limiters.authed,
+    validate({ params: idParams, query: certificatePdfQuery }),
+    c.certificatePdf
+  );
   return router;
 }
 

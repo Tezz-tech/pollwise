@@ -81,6 +81,10 @@ export function createLearnerController(ctx) {
       res.json({ data: await certificates.listMine(userOf(req)) });
     },
 
+    async certificatePdfLink(req, res) {
+      res.json({ data: await certificates.certificatePdfLink(ctx, userOf(req), req.validated.params.id) });
+    },
+
     async certificatePdf(req, res) {
       const pdf = await certificates.certificatePdf(ctx, userOf(req), req.validated.params.id);
       res.set('Content-Type', 'application/pdf');

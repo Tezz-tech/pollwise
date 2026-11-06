@@ -6,6 +6,7 @@ import { Certificate } from '../models/index.js';
 import { HttpError } from '../utils/httpError.js';
 import { renderCertificatePdf } from '../domain/certificatePdf.js';
 import { CERTIFICATE_CODE_PATTERN } from './progressService.js';
+import { signCertificateDownload, CERT_DOWNLOAD_TTL_SECONDS } from './tokenService.js';
 
 const view = (c) => ({
   id: String(c._id),
@@ -21,6 +22,20 @@ const view = (c) => ({
 export async function listMine(userId) {
   const rows = await Certificate.find({ userId, revokedAt: null }).sort({ issuedAt: -1 }).lean();
   return { items: rows.map(view) };
+}
+
+/**
+ * A two-minute download link for the owner's certificate (see middleware/certificateAuth.js). The path is relative to
+ * the API base, so the app and the browser both build the same URL.
+ */
+export async function certificatePdfLink(ctx, userId, certificateId) {
+  const cert = await Certificate.findOne({ _id: certificateId, userId, revokedAt: null }, { _id: 1 }).lean();
+  if (!cert) throw new HttpError(404, ERROR_CODES.NOT_FOUND, 'That certificate does not exist.');
+  const token = signCertificateDownload(ctx, { userId: String(userId), certificateId: String(cert._id) });
+  return {
+    path: `/certificates/${cert._id}/pdf?download=${encodeURIComponent(token)}`,
+    expiresInSec: CERT_DOWNLOAD_TTL_SECONDS,
+  };
 }
 
 /** The owner's certificate as a PDF. Anyone else gets 404, so ids cannot be probed. */

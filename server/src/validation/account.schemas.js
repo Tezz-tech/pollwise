@@ -53,3 +53,11 @@ export const inviteAdminBody = z
     role: z.enum(INVITABLE_ROLE_VALUES),
   })
   .strict();
+
+/** Own password change. The new one follows the same rules as sign-up (SPEC §3: at least 10 characters). */
+export const changePasswordBody = z
+  .object({
+    currentPassword: z.string().min(1).max(128),
+    newPassword: z.string().min(10).max(128),
+  })
+  .strict();

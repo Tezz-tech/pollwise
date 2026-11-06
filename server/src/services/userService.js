@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
 import { ERROR_CODES, PERSONNEL_ROLES, USER_STATUS } from '@pollwise/shared/constants';
 import { User } from '../models/index.js';
 import { HttpError } from '../utils/httpError.js';
-import { hashPassword } from '../utils/password.js';
+import { hashPassword, passwordProblem, verifyPassword } from '../utils/password.js';
 import { randomToken } from '../utils/crypto.js';
 import { addDays } from '../utils/time.js';
 import { lgaBelongsToState } from './geoService.js';
@@ -162,4 +162,28 @@ export async function anonymiseDueAccounts(ctx) {
     );
   }
   return due.length;
+}
+
+/**
+ * Change the learner's own password (DESIGN §6.10). The current password is required, so a stolen access token
+ * alone cannot take the account. Every session ends, including this one: the app signs in again.
+ * @param {{ now: () => Date }} ctx
+ * @param {string} userId
+ * @param {{ currentPassword: string, newPassword: string }} input
+ */
+export async function changePassword(ctx, userId, { currentPassword, newPassword }) {
+  // The hash is not selected by default (it is a secret); this is the one place that needs it.
+  const user = await User.findById(userId).select('+passwordHash');
+  if (!user) throw new HttpError(404, ERROR_CODES.NOT_FOUND, 'We could not find that account.');
+  if (!(await verifyPassword(user.passwordHash, currentPassword))) {
+    throw new HttpError(401, ERROR_CODES.INVALID_CREDENTIALS, "That is not your current password.");
+  }
+  const problem = passwordProblem(newPassword);
+  if (problem) throw new HttpError(400, ERROR_CODES.VALIDATION_FAILED, problem);
+  user.passwordHash = await hashPassword(newPassword);
+  user.security.passwordChangedAt = ctx.now();
+  user.security.tokenVersion += 1;
+  await user.save();
+  await revokeAllForUser(ctx, user._id);
+  return { changed: true };
 }

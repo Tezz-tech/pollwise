@@ -20,6 +20,10 @@ export function createAccountController(ctx) {
       res.json({ data: await users.updateProfile(ctx, req.user.id, req.validated.body) });
     },
 
+    async changePassword(req, res) {
+      res.json({ data: await users.changePassword(ctx, req.user.id, req.validated.body) });
+    },
+
     async requestDeletion(req, res) {
       res.status(202).json({ data: await users.requestDeletion(ctx, req.user.id) });
     },
