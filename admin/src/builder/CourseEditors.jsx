@@ -83,8 +83,8 @@ export function CourseEditor({ course }) {
 
   return (
     <div className="flex flex-col gap-2xl">
-      <Card className="grid gap-lg md:grid-cols-[280px_1fr]">
-        <div className="flex flex-col gap-md">
+      <Card className="flex flex-col gap-lg">
+        <div className="flex max-w-[360px] flex-col gap-md">
           <div className="aspect-video overflow-hidden rounded-md bg-gradient-to-br from-jade500 to-jade700">
             {course.coverImage?.url ? (
               <img

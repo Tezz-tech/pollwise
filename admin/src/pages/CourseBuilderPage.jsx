@@ -122,7 +122,7 @@ export default function CourseBuilderPage() {
         </p>
       )}
 
-      <div className="grid gap-xl xl:grid-cols-[280px_minmax(0,1fr)_320px]">
+      <div className="grid gap-xl xl:grid-cols-[260px_minmax(0,1fr)] 2xl:grid-cols-[280px_minmax(0,1fr)_320px]">
         <aside aria-label="Course outline" className="flex flex-col gap-md">
           <OutlineTree
             course={course}
@@ -165,7 +165,7 @@ export default function CourseBuilderPage() {
           )}
         </section>
 
-        <aside aria-label="Item help" className="hidden xl:block">
+        <aside aria-label="Learner preview" className="xl:col-span-2 2xl:col-span-1">
           <div className="sticky top-24">
             <p className="mb-md text-pw-label font-[800] uppercase tracking-[0.6px] text-ink600">
               Learner preview
@@ -234,7 +234,9 @@ function CoursePreviewCard({ course }) {
       </div>
       <h3 className="text-pw-h3 font-[800] text-ink900">{course.title}</h3>
       <p className="text-pw-small text-ink600">{course.summary}</p>
-      <p className="text-pw-small text-ink600">{course.modules.length} modules</p>
+      <p className="text-pw-small text-ink600">
+        {course.modules.length} {course.modules.length === 1 ? 'module' : 'modules'}
+      </p>
     </div>
   );
 }
