@@ -74,3 +74,30 @@ Phase 2 — content and admin course APIs
 - 2026-11-06 — Preview uses the same learner serializers as the app, so an admin previews exactly what a learner receives.
 - 2026-11-06 — `cloudinary` and `pdfkit` installed (both in the approved stack). `pdfkit` is used in Phase 3.
 - 2026-11-06 — Mongoose operator filters (`$in`, `$ne`, `$gt`) are wrapped in `mongoose.trusted()`, because `sanitizeFilter` otherwise turns them into literal matches.
+
+Phase 3 — the learning engine
+
+- 2026-11-06 — Practice lessons complete once every question is answered. XP is paid on completion as 5 + 2 per correct answer (SPEC §8.3), not per answer, so a practice cannot be farmed question by question.
+- 2026-11-06 — A video heartbeat's own `durationSec` is ignored; completion uses the length stored by the admin. A client cannot shorten a video by reporting a short one.
+- 2026-11-06 — Text and document minimum times count from the first time the lesson is opened (`openedAt`), set by the lesson GET. Completing before that is refused with 409 TOO_SOON.
+- 2026-11-06 — A learner who has not opened a video cannot send heartbeats (409 TOO_SOON), so every watched second is tied to an opened lesson.
+- 2026-11-06 — The streak counts a day when the learner completes a lesson or submits a check, pass or fail. SPEC §8.4 says "completed"; submitting is the closest event that a learner controls.
+- 2026-11-06 — Streak updates use an optimistic concurrency check on the stored last-active day, retried up to three times, so two simultaneous completions cannot both extend the streak.
+- 2026-11-06 — The daily goal is announced once per Lagos day by writing a zero-amount XP marker with the same unique index that protects XP.
+- 2026-11-06 — First-pass XP is granted once per assessment: pass 20, first try +10 (first attempt only), perfect +10 (score 100). The claim is a conditional update on `passedModuleIds`, so a retry or a second attempt pays nothing.
+- 2026-11-06 — `Enrollment` gained `passedModuleIds` (the unlock rules read it) and `bestScores` is updated with `$max`, so the best score survives any order of attempts.
+- 2026-11-06 — Only one attempt may be open per learner and assessment. A partial unique index enforces it, and a concurrent start returns the attempt that won.
+- 2026-11-06 — Attempts expire lazily: the first request after the time limit settles the attempt (grades what was answered, applies progression, marks it expired). A learner's answers are never lost. Any events from settling inside a GET are applied to XP but not returned to that request; the app refreshes `/me/stats` to pick them up.
+- 2026-11-06 — Answering an expired attempt returns 409 ATTEMPT_EXPIRED, and the answers are already submitted.
+- 2026-11-06 — When drawCount is set, the attempt draws that many from the whole bank (reflection included). The pass mark is taken from the assessment when the attempt starts, so a later settings change does not move it.
+- 2026-11-06 — Learner answer responses include `correctAnswer` only when the assessment's reveal rule is `immediately`, and the explanation appears only after an answer. Submit returns a review only as the reveal rule allows (SPEC §8.2).
+- 2026-11-06 — The catalogue defaults to the learner's own role ("For you", SPEC §6). `role=all` lifts the filter.
+- 2026-11-06 — Locked lessons and checks return 423 LESSON_LOCKED / ASSESSMENT_LOCKED. Not being enrolled returns 403 NOT_ENROLLED, checked before the lock, so the reason is clear.
+- 2026-11-06 — `/me/stats` returns readiness only when the learner's role has required courses; otherwise it is null and the app shows course progress instead (SPEC §8.7).
+- 2026-11-06 — Certificates: code of ten Crockford base32 characters, unique by index; score is the rounded mean of the best module scores; the PDF is rendered on demand and never stored; the verify endpoint returns only validity, name, course and date.
+- 2026-11-06 — Anonymising an account now revokes its certificates (SECURITY §11). This closes the Phase 1 deferral.
+- 2026-11-06 — Learner routes attach authentication per route, not per router, so mounting order can never put a public route behind a login check.
+- 2026-11-06 — Rate limits added: heartbeat 20/min per user, attempt answers 60/min per user, verify 30/min per IP (SECURITY §5).
+- 2026-11-06 — The answer-leak test walks every learner response across catalogue, outline, lessons, practice, attempts and submit. It fails on any answer key, on the explanation before an answer, and on aligned matching pairs.
+- 2026-11-06 — Certificate assets: the PollWise logo from brand/png and Nunito from the approved `@expo-google-fonts/nunito` package (SIL OFL), copied into server/assets.
+- 2026-11-06 — `pdfkit` (approved stack) renders certificates. It uses the built-in font set only for what is not Nunito, so no font download happens at runtime.

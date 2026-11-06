@@ -3,6 +3,7 @@ import { ROLES } from '@pollwise/shared/constants';
 import { createAccountController } from '../controllers/account.controller.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { createContentRoutes } from './content.routes.js';
+import { createLearnerController } from '../controllers/learner.controller.js';
 import { validate } from '../middleware/validate.js';
 import {
   updateMeBody,
@@ -23,6 +24,9 @@ export function createMeRouter(ctx, limiters) {
   router.patch('/', validate({ body: updateMeBody }), c.updateMe);
   router.patch('/profile', validate({ body: updateProfileBody }), c.updateProfile);
   router.delete('/', c.requestDeletion);
+  const learner = createLearnerController(ctx);
+  router.get('/stats', learner.myStats);
+  router.get('/certificates', learner.myCertificates);
   return router;
 }
 

@@ -21,6 +21,12 @@ export const DEFAULT_RATE_LIMITS = Object.freeze({
   publicIp: { limit: 100, windowMs: 15 * MINUTE },
   /** Every authenticated route, per user */
   authed: { limit: 300, windowMs: 15 * MINUTE },
+  /** POST /lessons/:id/heartbeat, per user (SECURITY §5) */
+  heartbeat: { limit: 20, windowMs: MINUTE },
+  /** POST /attempts/:id/answers, per user (SECURITY §5) */
+  answers: { limit: 60, windowMs: MINUTE },
+  /** GET /verify/:code, per IP (SECURITY §5) */
+  verify: { limit: 30, windowMs: MINUTE },
 });
 
 /** Answer 429 in the standard envelope with a Retry-After header (SECURITY §5). */
@@ -65,5 +71,8 @@ export function createRateLimiters(overrides = {}) {
     resetAccount: make(limits.resetAccount, byAccount),
     publicIp: make(limits.publicIp, byIp),
     authed: make(limits.authed, byUser),
+    heartbeat: make(limits.heartbeat, byUser),
+    answers: make(limits.answers, byUser),
+    verify: make(limits.verify, byIp),
   };
 }

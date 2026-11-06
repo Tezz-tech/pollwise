@@ -13,6 +13,7 @@ import { randomToken } from '../utils/crypto.js';
 import { addDays } from '../utils/time.js';
 import { lgaBelongsToState } from './geoService.js';
 import { revokeAllForUser } from './tokenService.js';
+import { Certificate } from '../models/index.js';
 import { toPublicUser } from './authService.js';
 
 export const DELETION_GRACE_DAYS = 7;
@@ -126,6 +127,11 @@ export async function anonymiseDueAccounts(ctx) {
   ).lean();
 
   for (const { _id } of due) {
+    // Certificates carry the learner's name, so they stop verifying once the account is anonymised.
+    await Certificate.updateMany(
+      { userId: _id, revokedAt: null },
+      { $set: { revokedAt: ctx.now() } }
+    );
     await User.updateOne(
       { _id },
       {

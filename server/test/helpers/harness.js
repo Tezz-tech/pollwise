@@ -75,10 +75,17 @@ export async function startHarness({ rateLimits = {} } = {}) {
   const config = testConfig();
   // Generous limits by default so unrelated tests do not trip them.
   const generous = Object.fromEntries(
-    ['login', 'register', 'resetIp', 'resetAccount', 'publicIp', 'authed'].map((k) => [
-      k,
-      { limit: 100000, windowMs: 60_000 },
-    ])
+    [
+      'login',
+      'register',
+      'resetIp',
+      'resetAccount',
+      'publicIp',
+      'authed',
+      'heartbeat',
+      'answers',
+      'verify',
+    ].map((k) => [k, { limit: 100000, windowMs: 60_000 }])
   );
   const app = createApp({
     config,

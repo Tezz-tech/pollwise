@@ -9,3 +9,4 @@ export { AuditLog } from './AuditLog.js';
 export { Settings, SETTINGS_KEY } from './Settings.js';
 export { Course, Module, Lesson, Assessment, Enrollment } from './content.models.js';
 export { Upload } from './Upload.js';
+export { LessonProgress, AssessmentAttempt, XpEvent, Certificate } from './learning.models.js';
