@@ -57,48 +57,13 @@ async function superAdminSession(email = 'boss@pollwise.test') {
 }
 
 describe('admin two-step sign-in', () => {
-  it('a super admin always needs TOTP, and first login asks for setup', async () => {
+  it('a super admin signs in with the password alone (two-step sign-in is not used for admins)', async () => {
     await makeAdmin({ email: 'boss@pollwise.test', role: 'super_admin' });
     const res = await adminLogin('boss@pollwise.test');
     expect(res.status).toBe(200);
-    expect(res.body.data.needsTotp).toBe(true);
-    expect(res.body.data.totpSetupRequired).toBe(true);
-    expect(res.body.data.challengeToken).toEqual(expect.any(String));
-    expect(res.body.data.accessToken).toBeUndefined();
-    expect(cookieNamed(res, 'pw_admin_refresh')).toBeUndefined();
-  });
-
-  it('setup returns an otpauth URI and a secret; the first correct code enables TOTP and returns recovery codes', async () => {
-    await makeAdmin({ email: 'boss@pollwise.test', role: 'super_admin' });
-    const step1 = await adminLogin('boss@pollwise.test');
-    const challengeToken = step1.body.data.challengeToken;
-
-    const setup = await h.api.post('/api/v1/auth/admin/totp/setup').send({ challengeToken });
-    expect(setup.status).toBe(200);
-    expect(setup.body.data.otpauthUri).toMatch(/^otpauth:\/\/totp\/PollWise/);
-    expect(setup.body.data.secret).toMatch(/^[A-Z2-7]+$/);
-
-    const wrong = await h.api
-      .post('/api/v1/auth/admin/totp')
-      .send({ challengeToken, code: '000000' });
-    expect(wrong.status).toBe(401);
-    expect(wrong.body.error.code).toBe('INVALID_TOTP');
-
-    const code = await generate({
-      secret: setup.body.data.secret,
-      epoch: h.clock.now.getTime() / 1000,
-    });
-    const done = await h.api.post('/api/v1/auth/admin/totp').send({ challengeToken, code });
-    expect(done.status).toBe(200);
-    expect(done.body.data.user.role).toBe('super_admin');
-    expect(done.body.data.recoveryCodes).toHaveLength(10);
-    expect(done.body.data.refreshToken).toBeUndefined();
-
-    const stored = await User.findOne({ email: 'boss@pollwise.test' })
-      .select('+security.totpSecretEnc')
-      .lean();
-    expect(stored.security.totpEnabled).toBe(true);
-    expect(stored.security.totpSecretEnc).not.toContain(setup.body.data.secret);
+    expect(res.body.data.needsTotp).toBe(false);
+    expect(res.body.data.accessToken).toEqual(expect.any(String));
+    expect(res.body.data.user.role).toBe('super_admin');
   });
 
   it('after setup, the next sign-in asks for the code, not setup', async () => {
@@ -207,25 +172,13 @@ describe('admin two-step sign-in', () => {
     expect(res.body.error.code).toBe('INVALID_CREDENTIALS');
   });
 
-  it('writes audit entries for a failed password, a success and TOTP enrolment', async () => {
+  it('writes audit entries for a failed password and a success', async () => {
     await makeAdmin({ email: 'boss@pollwise.test', role: 'super_admin' });
     await adminLogin('boss@pollwise.test', 'Not-The-Password-9');
-    const step1 = await adminLogin('boss@pollwise.test');
-    const setup = await h.api
-      .post('/api/v1/auth/admin/totp/setup')
-      .send({ challengeToken: step1.body.data.challengeToken });
-    const code = await generate({
-      secret: setup.body.data.secret,
-      epoch: h.clock.now.getTime() / 1000,
-    });
-    await h.api
-      .post('/api/v1/auth/admin/totp')
-      .send({ challengeToken: step1.body.data.challengeToken, code });
+    await adminLogin('boss@pollwise.test');
 
     const actions = (await AuditLog.find({}).lean()).map((row) => row.action);
-    expect(actions).toEqual(
-      expect.arrayContaining(['admin.login_failed', 'admin.totp_enabled', 'admin.login'])
-    );
+    expect(actions).toEqual(expect.arrayContaining(['admin.login_failed', 'admin.login']));
   });
 });
 

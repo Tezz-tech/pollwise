@@ -71,7 +71,7 @@ than duplicating code.
 3. **Every request body, query and param is validated with zod** at the route boundary. Unknown fields
    are stripped. A user can never set their own `role`, `xp`, `streak` or `status`.
 4. **Roles:** `learner`, `content_admin`, `super_admin`. Check the role _and_ ownership on every admin
-   route. Super admins require TOTP two-factor sign-in.
+   route. Admins sign in with their password. Two-step (TOTP) sign-in is not used; this was an owner decision (see docs/DECISIONS.md).
 5. **Politically neutral.** No party names, colours used as party symbols, candidates or partisan
    imagery anywhere in UI copy, sample data or illustrations. Do not claim or imply affiliation with
    INEC. Do not use the INEC logo.

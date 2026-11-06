@@ -409,7 +409,9 @@ export async function adminLogin(ctx, input, meta) {
     throw new HttpError(403, ERROR_CODES.ACCOUNT_DEACTIVATED, 'This account is not active.');
   }
 
-  const needsTotp = user.role === ROLES.SUPER_ADMIN || user.security.totpEnabled;
+  // Two-step sign-in is not required for admins (owner decision, see docs/DECISIONS.md). An account that has
+  // switched it on still gets the step.
+  const needsTotp = Boolean(user.security.totpEnabled);
   if (!needsTotp) {
     await recordAudit(ctx, {
       actorId: user._id,

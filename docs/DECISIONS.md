@@ -255,3 +255,10 @@ Vercel deployment and the GitHub repository
 - 2026-11-06 — Known limit: login and sign-up rate limits are per instance. A shared store would close this and needs approval before it is added.
 - 2026-11-06 — Repository secret check before the first push: no secret values in the tracked files or the 25-commit history (the Cloudinary secret, the TOTP secret and the dev passwords are not in the repo). The test suite uses one throwaway password in its fixtures; it is not a credential. No .env file, node_modules or build output is tracked.
 - 2026-11-06 — The repository Tezz-tech/pollwise was empty when checked (ls-remote returned no refs and no error). The local history was pushed to main as the first content. The phase branches stay local.
+
+Owner decision — two-step sign-in removed for admins
+
+- 2026-11-06 — The owner asked for TOTP two-step sign-in to be removed, because it is not needed. Super admins (and content admins) now sign in with email and password, like content admins already did. The TOTP code remains in the codebase but is used only for an account that has switched it on, and nothing in the app switches it on. This lowers the protection on super admin accounts, which previously required a second factor (CLAUDE.md rule 4, SPEC §2, SECURITY §1). A strong password and the account lockout after repeated failures are now the only protection. The owner accepted this on record.
+- 2026-11-06 — create-super-admin no longer generates or prints a TOTP secret. It asks for an email, a password and a name, and refuses an email that already exists.
+- 2026-11-06 — Tests updated: a super admin signs in with the password alone; the audit test covers failed and successful logins. Admin sign-in suite: 68 passing with the route review.
+- 2026-11-06 — Recommended follow-up: rotate any existing super admin password, and remove the unused TOTP code path in a later cleanup once the owner confirms.

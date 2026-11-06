@@ -3,10 +3,9 @@
  * Create the first super admin (SPEC §2). There is no default account and no seeded password: the
  * operator types the email and password here.
  *
- *   npm run create-super-admin -w server
+ *   npm run create-super-admin
  *
- * It prints the TOTP setup URI once. The super admin scans it on first sign-in, then enters the first
- * code, which turns two-step sign-in on. Refuses to run if the email is already registered.
+ * Two-step sign-in is not used for admins (owner decision). Refuses to run if the email is already registered.
  */
 import { createInterface } from 'node:readline';
 import { ERROR_CODES, ROLES } from '@pollwise/shared/constants';
@@ -14,7 +13,6 @@ import { loadConfigOrExit } from '../src/config/env.js';
 import { connectDatabase, disconnectDatabase } from '../src/db.js';
 import { User } from '../src/models/index.js';
 import { recordAudit } from '../src/services/auditService.js';
-import { encryptSecret, newTotpSecret, totpUri } from '../src/services/totpService.js';
 import { hashPassword, passwordProblem } from '../src/utils/password.js';
 
 /**
@@ -77,7 +75,6 @@ async function run(config) {
     }
 
     const name = (await ask('Full name: ')) || 'Super admin';
-    const secret = newTotpSecret();
     const user = await User.create({
       name,
       email,
@@ -86,7 +83,6 @@ async function run(config) {
       security: {
         passwordChangedAt: new Date(),
         totpEnabled: false,
-        totpPendingSecretEnc: encryptSecret(Buffer.from(config.TOTP_ENC_KEY, 'base64'), secret),
       },
     });
 
@@ -102,12 +98,7 @@ async function run(config) {
     );
 
     console.log('\nSuper admin created.');
-    console.log('Add this account to your authenticator app now. It is shown only once:\n');
-    console.log(`  Secret:  ${secret}`);
-    console.log(`  URI:     ${totpUri({ secret, label: email })}\n`);
-    console.log(
-      'Sign in to the admin site with this email and password, then enter the six-digit code.'
-    );
+    console.log('Sign in to the admin site with this email and password.');
   } finally {
     await disconnectDatabase();
   }

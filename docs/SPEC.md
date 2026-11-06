@@ -21,7 +21,7 @@ Lesson videos live on the client's own **YouTube channel as unlisted videos** an
 | --------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `learner`       | Mobile app | Register, complete profile, browse and enrol in published courses, take lessons and assessments, earn XP, keep a streak, receive certificates, delete own account                                                                                              |
 | `content_admin` | Admin web  | Create courses; edit and publish **their own** courses; build modules, lessons and assessments; preview as a learner. Cannot delete courses, cannot see learners or reports.                                                                                   |
-| `super_admin`   | Admin web  | Everything a content admin can do, on **any** course, plus: delete/unpublish courses, view and manage all users and their progress, reports and CSV export, create and revoke admin accounts, change platform settings, view the audit log. TOTP 2FA required. |
+| `super_admin`   | Admin web  | Everything a content admin can do, on **any** course, plus: delete/unpublish courses, view and manage all users and their progress, reports and CSV export, create and revoke admin accounts, change platform settings, view the audit log. Signs in with password only (owner decision, see docs/DECISIONS.md). |
 
 The first super admin is created with a CLI script (`npm run create-super-admin -w server`) that
 prompts for email and password. There is no default account and no seeded password.
