@@ -6,13 +6,16 @@
  */
 import { create } from 'zustand';
 
-/** Event types that become a pop-up. */
+/**
+ * Event types that become a pop-up. module_passed is not one of them: the assessment results screen shows it, so a
+ * second pop-up would say the same thing twice.
+ */
 export const POPUP_EVENTS = Object.freeze([
   'streak_extended',
   'streak_milestone',
   'streak_freeze_earned',
+  'streak_freeze_used',
   'daily_goal_met',
-  'module_passed',
   'course_completed',
 ]);
 

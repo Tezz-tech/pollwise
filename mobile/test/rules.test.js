@@ -118,3 +118,17 @@ describe('pickRecommendedCourse', () => {
     expect(pickRecommendedCourse([{ enrolment: { status: 'completed' } }], 'x')).toBeNull();
   });
 });
+
+import { isWelcomeBack } from '../src/lib/welcomeBack.js';
+
+describe('isWelcomeBack', () => {
+  const now = new Date('2026-11-10T09:00:00Z');
+  it('is true after three or more days away', () => {
+    expect(isWelcomeBack('2026-11-07T09:00:00Z', now)).toBe(true);
+  });
+  it('is false for a short gap, a first run, or a bad value', () => {
+    expect(isWelcomeBack('2026-11-09T09:00:00Z', now)).toBe(false);
+    expect(isWelcomeBack(null, now)).toBe(false);
+    expect(isWelcomeBack('not a date', now)).toBe(false);
+  });
+});

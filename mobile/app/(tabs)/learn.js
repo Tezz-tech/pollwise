@@ -29,7 +29,13 @@ import { useToasts } from '../../src/stores/toastStore.js';
 import { useSession } from '../../src/stores/sessionStore.js';
 import { daysUntil } from '../../src/lib/reminders.js';
 import { tipForDay } from '../../src/lib/tips.js';
+import { isWelcomeBack, WELCOME_BACK_KEY } from '../../src/lib/welcomeBack.js';
+import { secureStorage } from '../../src/lib/storage.js';
+import WelcomeBackSheet from '../../src/components/WelcomeBackSheet.js';
 import { theme } from '../../src/theme/theme.js';
+
+/** Checked once per app session, so the sheet cannot come back on every visit to the tab. */
+let welcomeChecked = false;
 
 const { colors, fonts, type, space, size } = theme;
 
@@ -54,6 +60,7 @@ export default function Learn() {
   const [popover, setPopover] = useState(null);
   const [sheet, setSheet] = useState(null);
   const [unlocked, setUnlocked] = useState(null);
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
 
   // Each visit: refresh the path and stats, and play any module unlocked since last time (DESIGN §3, interaction 8).
   useFocusEffect(
@@ -64,6 +71,19 @@ export default function Learn() {
       const moments = useCelebrations.getState().takePathMoments();
       const last = moments[moments.length - 1];
       if (last?.event?.moduleId) setUnlocked(last.event.moduleId);
+
+      // Welcome back after three days away, then remember this visit for next time.
+      const nowIso = new Date().toISOString();
+      secureStorage
+        .get(WELCOME_BACK_KEY)
+        .then((previous) => {
+          if (!welcomeChecked) {
+            welcomeChecked = true;
+            if (isWelcomeBack(previous, new Date())) setWelcomeOpen(true);
+          }
+          return secureStorage.set(WELCOME_BACK_KEY, nowIso);
+        })
+        .catch(() => {});
     }, [queryClient])
   );
 
@@ -76,7 +96,11 @@ export default function Learn() {
 
   const onNodePress = (row) => {
     if (row.check) {
-      useToasts.getState().show('Module checks open in the next update.', 'info');
+      const params = new URLSearchParams({
+        title: row.title,
+        passMark: String(row.passMark ?? 70),
+      });
+      router.push(`/assessment/${row.id}?${params.toString()}`);
       return;
     }
     setPopover(row);
@@ -199,6 +223,11 @@ export default function Learn() {
         }}
       />
       <StatSheet kind={sheet} stats={stats.data} onClose={() => setSheet(null)} />
+      <WelcomeBackSheet
+        visible={welcomeOpen}
+        onContinue={() => setWelcomeOpen(false)}
+        onClose={() => setWelcomeOpen(false)}
+      />
     </View>
   );
 }

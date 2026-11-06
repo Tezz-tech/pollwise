@@ -4,7 +4,7 @@ import { theme } from '../../src/theme/theme.js';
 const { colors, fonts, type } = theme;
 
 /**
- * The two learner tabs for now: Learn and Courses. Progress and Profile arrive with Phase 9 (DESIGN §6.9, §6.10).
+ * The four learner tabs (DESIGN §6): Learn, Courses, Progress and Profile.
  */
 export default function TabsLayout() {
   return (
@@ -13,7 +13,7 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.jade600,
         tabBarInactiveTintColor: colors.ink600,
-        tabBarLabelStyle: { fontFamily: fonts.heavy, fontSize: type.small.size },
+        tabBarLabelStyle: { fontFamily: fonts.heavy, fontSize: type.small.size - 1 },
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.line },
       }}
     >
@@ -24,6 +24,14 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="courses"
         options={{ title: 'Courses', tabBarAccessibilityLabel: 'Courses tab' }}
+      />
+      <Tabs.Screen
+        name="progress"
+        options={{ title: 'Progress', tabBarAccessibilityLabel: 'Progress tab' }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{ title: 'Profile', tabBarAccessibilityLabel: 'Profile tab' }}
       />
     </Tabs>
   );

@@ -77,6 +77,7 @@ export function buildPath(outline) {
         xp: null,
         state: checkState(mod.assessment),
         check: true,
+        passMark: mod.assessment.passMark ?? null,
         moduleId: mod.id,
         height: ROW_HEIGHT,
       });

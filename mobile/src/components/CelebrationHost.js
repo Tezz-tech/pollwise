@@ -6,6 +6,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { router } from 'expo-router';
 import { useCelebrations } from '../stores/celebrationStore.js';
 import { useFeedback } from '../hooks/useFeedback.js';
 import { COPY, interpolate, pickCopy } from '@pollwise/shared/copy';
@@ -15,12 +16,13 @@ import Confetti from './Confetti.js';
 import LipButton from './LipButton.js';
 import ProgressRing from './ProgressRing.js';
 import CountUp from './CountUp.js';
+import CertificateReveal from './CertificateReveal.js';
 import { FlameIcon, ShieldIcon } from './icons.js';
 
 const { colors, fonts, radius, space, type, motion } = theme;
 
 /**
- * Shows the next queued pop-up (DESIGN §5). One at a time, never over a lesson (the lesson pauses the queue), and
+ * Shows the next queued pop-up (DESIGN §5). One at a time, never over a lesson or check (those pause the queue), and
  * nothing dismisses it except its own button. Mounted once in the root layout.
  */
 export default function CelebrationHost() {
@@ -28,6 +30,16 @@ export default function CelebrationHost() {
   const paused = useCelebrations((s) => s.paused);
   const shift = useCelebrations((s) => s.shift);
   if (!head || paused) return null;
+  if (head.event.type === 'course_completed') {
+    return (
+      <CertificateReveal
+        key={head.id}
+        certificateId={head.event.certificateId ?? null}
+        onView={(certificateId) => router.push(`/certificate/${certificateId}`)}
+        onDone={shift}
+      />
+    );
+  }
   return <Moment key={head.id} event={head.event} onDone={shift} />;
 }
 
@@ -42,8 +54,12 @@ export function Moment({ event, onDone }) {
   useEffect(() => {
     enter.value = reduced ? 1 : withSpring(1, motion.springGentle);
     if (event.type === 'streak_extended' || event.type === 'streak_milestone') sound('streak');
-    if (event.type === 'daily_goal_met' || event.type === 'course_completed') sound('pass');
-    haptic(event.type === 'streak_freeze_earned' ? 'selection' : 'impactHeavy');
+    if (event.type === 'daily_goal_met') sound('pass');
+    haptic(
+      event.type === 'streak_freeze_earned' || event.type === 'streak_freeze_used'
+        ? 'selection'
+        : 'impactHeavy'
+    );
   }, [enter, event.type, haptic, reduced, sound]);
 
   const card = useAnimatedStyle(() => ({
@@ -129,30 +145,19 @@ export function copyFor(event) {
         body: 'It protects your streak if you miss a day.',
         button: 'Nice',
       };
+    case 'streak_freeze_used':
+      return {
+        hero: 'shield',
+        title: 'Your streak freeze was used.',
+        body: 'You missed a day, and the freeze kept your streak going.',
+        button: 'Got it',
+      };
     case 'daily_goal_met':
       return {
         hero: 'ring',
         confetti: true,
         title: 'Daily goal reached.',
         body: `${event.xpToday ?? event.goal ?? 0} XP today.`,
-        button: 'Continue',
-      };
-    case 'module_passed':
-      return {
-        hero: 'tally',
-        mood: 'cheer',
-        confetti: true,
-        title: pickCopy(COPY.pass, 0),
-        body: pickCopy(COPY.pass, 1),
-        button: 'Continue',
-      };
-    case 'course_completed':
-      return {
-        hero: 'tally',
-        mood: 'cheer',
-        confetti: true,
-        title: 'Course complete.',
-        body: 'Your certificate is ready.',
         button: 'Continue',
       };
     default:
