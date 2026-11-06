@@ -101,12 +101,13 @@ describe('route review', () => {
   it('finds the routes it expects (the walk did not come back empty or shifted)', () => {
     const routes = listRoutes(h.app);
     // Exact on purpose: adding or removing a route must update docs/ROUTE_REVIEW.md in the same change.
-    expect(routes.length).toBe(76);
+    expect(routes.length).toBe(77);
     expect(routes).toContain('POST /api/v1/auth/login');
     expect(routes).toContain('GET /api/v1/me/stats');
     expect(routes).toContain('POST /api/v1/me/password');
     expect(routes).toContain('GET /api/v1/admin/users');
     expect(routes).toContain('GET /api/v1/certificates/:id/pdf-link');
+    expect(routes).toContain('GET /api/v1/internal/cron/anonymise');
   });
 
   it('refuses an anonymous caller on every route that is not public', async () => {

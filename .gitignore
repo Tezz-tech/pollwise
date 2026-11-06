@@ -24,3 +24,6 @@ ios/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Vercel CLI local project link
+.vercel

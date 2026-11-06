@@ -244,3 +244,14 @@ Phase 10 follow-up — the open items
 - 2026-11-06 — The account-deletion wording now matches what the server does: personal details removed after seven days, certificates revoked, learning results kept only as anonymous totals.
 - 2026-11-06 — Store listings and data-safety answers: drafted in docs/STORE_LISTING.md, with a draft privacy policy for legal review. Nothing was submitted. The client's details are placeholders.
 - 2026-11-06 — Test course: "Test course: polling unit basics" was built through the admin API (two modules, a reading lesson each, a practice lesson, two checks), given a cover through the signed Cloudinary upload, and published through the checklist. It lives in the dev database only. It has no video or document lesson: video needs an unlisted YouTube ID from the client's channel, and documents need a Cloudinary PDF.
+
+Vercel deployment and the GitHub repository
+
+- 2026-11-06 — The API runs on Vercel as one serverless function (server/api/index.js, server/vercel.json). Its handler connects to MongoDB once per warm instance, builds the Express app once, and never listens, starts a timer or exits. A failed start answers 503 with a retry header and a generic message; the variable names may be logged, the values never. The long-running entry point (src/server.js) is unchanged for VPS or local use.
+- 2026-11-06 — The daily account deletion job runs as a Vercel Cron request to /api/v1/internal/cron/anonymise, protected by CRON_SECRET (at least 32 characters, compared in constant time on digests). Without the secret the endpoint refuses everyone. Covered by tests and by the route review (77 routes).
+- 2026-11-06 — The MongoDB pool is capped at 5 per instance on Vercel (10 elsewhere), and server selection gives up after 8 seconds, inside the 30-second function limit.
+- 2026-11-06 — The admin site is a second Vercel project. Its vercel.json rewrites /api to the API project, so sign-in cookies remain on the admin domain. The API project address is a placeholder to fill in at deploy time.
+- 2026-11-06 — Trade-off recorded: an Atlas IP allowlist cannot be narrowed to the API on Vercel (shared, changing outbound addresses). Options are in docs/DEPLOY.md section 2.
+- 2026-11-06 — Known limit: login and sign-up rate limits are per instance. A shared store would close this and needs approval before it is added.
+- 2026-11-06 — Repository secret check before the first push: no secret values in the tracked files or the 25-commit history (the Cloudinary secret, the TOTP secret and the dev passwords are not in the repo). The test suite uses one throwaway password in its fixtures; it is not a credential. No .env file, node_modules or build output is tracked.
+- 2026-11-06 — The repository Tezz-tech/pollwise was empty when checked (ls-remote returned no refs and no error). The local history was pushed to main as the first content. The phase branches stay local.

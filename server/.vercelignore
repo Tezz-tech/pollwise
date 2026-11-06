@@ -1,0 +1,7 @@
+test
+scripts
+coverage
+*.test.js
+.env
+.env.*
+!.env.example

@@ -77,6 +77,11 @@ export const envSchema = z
     CLOUDINARY_CLOUD_NAME: optionalString,
     CLOUDINARY_API_KEY: optionalString,
     CLOUDINARY_API_SECRET: optionalString,
+    /**
+     * Shared secret for the scheduled deletion job (Vercel Cron sends it as a bearer token). Without it the cron
+     * endpoint refuses every caller, so nothing can run it by accident.
+     */
+    CRON_SECRET: optionalString,
   })
   .superRefine((env, ctx) => {
     if (env.SMTP_HOST && !env.MAIL_FROM) {
@@ -84,6 +89,13 @@ export const envSchema = z
         code: 'custom',
         path: ['MAIL_FROM'],
         message: 'MAIL_FROM is required when SMTP_HOST is set',
+      });
+    }
+    if (env.CRON_SECRET && env.CRON_SECRET.length < 32) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['CRON_SECRET'],
+        message: 'CRON_SECRET must be at least 32 characters',
       });
     }
     if (env.NODE_ENV === 'production' && !env.SMTP_HOST) {

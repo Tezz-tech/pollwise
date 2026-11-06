@@ -11,7 +11,25 @@ Three pieces go live: the API (a Node server with MongoDB), the admin website (a
 - **Backups:** enable continuous cloud backups (or at least daily snapshots with 7 days of retention). Restore one snapshot to a test cluster once before launch, so you know the restore works.
 - **Indexes:** the server creates indexes on boot. Check the Atlas "Performance Advisor" after the first week of real use.
 
-## 2. The API (Node server)
+## 2. The API on Vercel (recommended)
+
+The API is a serverless function: `server/api/index.js` receives every request (`server/vercel.json` rewrites all paths to it). Each warm instance connects to MongoDB once and reuses the connection. Nothing listens on a port, and nothing runs between requests.
+
+- **Two projects from the one GitHub repository.** The API project uses the root directory `server`; the admin project uses `admin`. Enable "Include source files outside of the Root Directory", because both packages use the shared workspace code.
+- **Node version:** 22 (set by `engines` in `server/package.json`).
+- **Function limit:** 30 seconds (`server/vercel.json`). A request that waits for the database gives up after about 8 seconds and answers 503 with a retry header.
+- **Daily job:** Vercel Cron calls `/api/v1/internal/cron/anonymise` once a night (`server/vercel.json`). It sends `Authorization: Bearer <CRON_SECRET>`. Set `CRON_SECRET` to a value of at least 32 characters.
+- **Environment variables:** enter the table in section 4 in the project settings. Vercel sets `NODE_ENV=production` for production deployments, so the server's production checks apply.
+- **Admin site:** replace the `REPLACE-WITH-SERVER-PROJECT` placeholder in `admin/vercel.json` with the API project's domain. The admin site's `/api` requests are rewritten to the API, so the sign-in cookies stay on the admin domain.
+- **Verify after the first deploy:** open `/api/v1/health`; call `/api/v1/internal/cron/anonymise` without a header (it must answer 401); then run one real sign-in from the admin site. The first sign-in also proves that argon2 password hashing loads on Vercel's Linux build.
+
+**Known trade-off: MongoDB network rules.** Section 1 asks for Atlas to accept only the API host. Vercel's outbound addresses are shared and change, so an IP allowlist cannot be narrowed to the API on Vercel. Two options: allow Atlas access from anywhere and rely on the least-privilege database user and TLS (the current choice in this guide), or use a fixed outbound address (a paid Vercel feature) and allow only that address. Decide before launch and record the choice in DECISIONS.md.
+
+**Known limit: rate limits are per instance.** The login and sign-up limits are held in memory, so with several warm instances each one counts separately. A shared store closes this gap; adding one needs approval first.
+
+## 2c. The API on a long-running Node server (alternative)
+
+The API (Node server, details)
 
 - **Host:** any Node host that gives you HTTPS and environment secrets (for example Render, Railway, Fly.io, or a small VPS behind a reverse proxy). The server needs Node LTS.
 - **Build and start:** install with `npm ci` at the repository root. Start with `npm run start -w server`. The server listens on `PORT`.
@@ -31,18 +49,19 @@ Three pieces go live: the API (a Node server with MongoDB), the admin website (a
 
 Set these on the API host. `server/.env.example` lists every variable with a comment; the server checks all of them at boot and refuses to start if one is missing or weak.
 
-| Variable | Required in production | Notes |
-| --- | --- | --- |
-| `NODE_ENV` | yes | Set to `production`. |
-| `PORT` | no | Defaults to 4000. |
-| `LOG_LEVEL` | no | `info` in production. |
-| `MONGODB_URI` | yes | The least-privilege Atlas user (section 1). |
-| `JWT_ACCESS_SECRET` | yes | At least 32 random bytes. Generate with the command in the example file. |
-| `TOTP_ENC_KEY` | yes | Exactly 32 bytes, base64. Generate with the command in the example file. Losing it means every super admin must set up two-step sign-in again. |
-| `ADMIN_ORIGIN` | yes | The admin site's origin, for example `https://admin.example.org`. |
-| `ADMIN_PUBLIC_URL` | yes | The same address. Invitation and certificate check links point here. |
-| `TRUST_PROXY_HOPS` | yes | `1` behind one proxy. |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | yes | Required in production for password-reset codes and admin invitations. A transactional provider works; the client suggested Brevo. |
+| Variable                                                               | Required in production         | Notes                                                                                                                                              |
+| ---------------------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                                                             | yes                            | Set to `production`.                                                                                                                               |
+| `PORT`                                                                 | no                             | Defaults to 4000.                                                                                                                                  |
+| `LOG_LEVEL`                                                            | no                             | `info` in production.                                                                                                                              |
+| `MONGODB_URI`                                                          | yes                            | The least-privilege Atlas user (section 1).                                                                                                        |
+| `JWT_ACCESS_SECRET`                                                    | yes                            | At least 32 random bytes. Generate with the command in the example file.                                                                           |
+| `TOTP_ENC_KEY`                                                         | yes                            | Exactly 32 bytes, base64. Generate with the command in the example file. Losing it means every super admin must set up two-step sign-in again.     |
+| `ADMIN_ORIGIN`                                                         | yes                            | The admin site's origin, for example `https://admin.example.org`.                                                                                  |
+| `ADMIN_PUBLIC_URL`                                                     | yes                            | The same address. Invitation and certificate check links point here.                                                                               |
+| `TRUST_PROXY_HOPS`                                                     | yes                            | `1` behind one proxy.                                                                                                                              |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`        | yes                            | Required in production for password-reset codes and admin invitations. A transactional provider works; the client suggested Brevo.                 |
+| `CRON_SECRET`                                                          | yes, on Vercel                 | At least 32 characters. Vercel Cron sends it to the nightly deletion job. Without it the job refuses everyone.                                     |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | before publishing real content | Without them the upload endpoints answer 503; the rest of the API still runs. Rotate the secret if it was ever shared outside the host's settings. |
 
 The learner app needs two values at build time (in `mobile/eas.json`, not on the server):

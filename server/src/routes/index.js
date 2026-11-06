@@ -3,6 +3,7 @@ import { healthRouter } from './health.routes.js';
 import { createAuthRouter } from './auth.routes.js';
 import { createAdminRouter, createMeRouter, createPublicRouter } from './account.routes.js';
 import { createLearnerRouter, createVerifyRouter } from './learner.routes.js';
+import { createCronRouter } from './cron.routes.js';
 
 /**
  * Every route lives under /api/v1 (CLAUDE.md conventions).
@@ -18,5 +19,6 @@ export function createApiRouter(ctx, limiters) {
   apiRouter.use(createPublicRouter(ctx, limiters));
   apiRouter.use(createLearnerRouter(ctx, limiters));
   apiRouter.use(createVerifyRouter(ctx, limiters));
+  apiRouter.use(createCronRouter(ctx, limiters));
   return apiRouter;
 }
