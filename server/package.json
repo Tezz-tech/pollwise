@@ -1,0 +1,33 @@
+{
+  "name": "@pollwise/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PollWise API server (Express 5, MongoDB via Mongoose)",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "seed:geo": "node scripts/seed-geo.js",
+    "lint": "eslint . && prettier --check ."
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "11.3.0",
+    "supertest": "7.3.1",
+    "vitest": "5.1.0"
+  },
+  "dependencies": {
+    "@pollwise/shared": "0.1.0",
+    "cors": "2.8.6",
+    "express": "5.3.0",
+    "helmet": "8.3.0",
+    "mongoose": "9.12.0",
+    "pino": "10.4.0",
+    "pino-http": "11.0.0",
+    "zod": "4.6.7"
+  }
+}
