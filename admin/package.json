@@ -1,0 +1,30 @@
+{
+  "name": "@pollwise/admin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PollWise admin dashboard (Vite + React)",
+  "type": "module",
+  "scripts": {
+    "theme": "node scripts/build-theme.js",
+    "predev": "npm run theme",
+    "dev": "vite",
+    "prebuild": "npm run theme",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint . && prettier --check ."
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.4",
+    "@vitejs/plugin-react": "6.2.1",
+    "tailwindcss": "4.3.4",
+    "vite": "8.3.6"
+  },
+  "dependencies": {
+    "@expo-google-fonts/nunito": "0.4.2",
+    "@pollwise/shared": "0.1.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-router": "8.5.1"
+  }
+}
