@@ -27,6 +27,9 @@ export async function getPublicSettings() {
     nextElectionLabel: s.nextElectionLabel ?? null,
     registrationMode: s.registrationMode ?? REGISTRATION_MODES.OPEN,
     aboutText: s.aboutText ?? null,
+    // The app links to these from its profile screen, so they are public (SPEC §9).
+    supportEmail: s.supportEmail ?? null,
+    privacyPolicyUrl: s.privacyPolicyUrl ?? null,
   };
 }
 
