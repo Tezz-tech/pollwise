@@ -1,0 +1,7 @@
+node_modules
+dist
+build
+coverage
+.expo
+server/data/geo.json
+package-lock.json

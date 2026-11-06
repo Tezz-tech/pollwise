@@ -1,0 +1,40 @@
+{
+  "name": "pollwise",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PollWise — election-day training platform by Tezzer Technologies",
+  "type": "module",
+  "workspaces": [
+    "shared",
+    "server",
+    "admin",
+    "mobile"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:server": "npm run dev -w @pollwise/server",
+    "dev:admin": "npm run dev -w @pollwise/admin",
+    "dev:mobile": "npm run start -w @pollwise/mobile",
+    "sounds": "node scripts/make-sounds.js",
+    "seed:geo": "npm run seed:geo -w @pollwise/server",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.14.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.14.0",
+    "prettier": "3.9.10"
+  },
+  "allowScripts": {
+    "mongodb-memory-server@11.3.0": true
+  },
+  "overrides": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  }
+}

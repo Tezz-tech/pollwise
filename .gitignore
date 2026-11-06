@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Environment and secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+build/
+coverage/
+*.log
+
+# Expo / React Native
+.expo/
+.expo-shared/
+web-build/
+android/
+ios/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
